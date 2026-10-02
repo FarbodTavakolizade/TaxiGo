@@ -46,6 +46,8 @@ app.use((req, res, next) => {
 });
 
 // ----- Routes -----
+const authRoutes = require('./routes/authRoutes');
+
 // Small public entry point: send each visitor to the right place.
 app.get('/', (req, res) => {
   const user = req.session.user;
@@ -54,6 +56,8 @@ app.get('/', (req, res) => {
   if (user.role === 'DRIVER') return res.redirect('/driver/dashboard');
   return res.redirect('/passenger/dashboard');
 });
+
+app.use(authRoutes);
 
 // Simple health check that also verifies the database connection.
 app.get('/health', async (req, res) => {
