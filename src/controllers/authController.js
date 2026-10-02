@@ -13,11 +13,23 @@ function showLoginPage(req, res) {
 
 async function login(req, res) {
   const { email, password } = req.body;
-  const user = await authService.login({ email, password });
 
-  req.session.user = user;
-  req.flash('success', `Welcome back, ${user.name}!`);
-  res.redirect(dashboardUrlFor(user.role));
+  try {
+    const user = await authService.login({ email, password });
+    req.session.user = user;
+    req.flash('success', `Welcome back, ${user.name}!`);
+    return res.redirect(dashboardUrlFor(user.role));
+  } catch (err) {
+    // Show the message directly above the login form.
+    if (err.name === 'AppError') {
+      return res.status(err.statusCode).render('auth/login', {
+        title: 'Login',
+        form: { email },
+        error: err.message,
+      });
+    }
+    throw err;
+  }
 }
 
 function showRegisterPage(req, res) {

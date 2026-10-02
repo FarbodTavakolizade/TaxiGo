@@ -25,7 +25,13 @@ function errorHandler(err, req, res, next) {
 
   if (req.method === 'POST') {
     req.flash('error', message);
-    return res.redirect(req.get('Referrer') || '/');
+
+    // Go back to the referring page when possible, otherwise to the
+    // home page for the user's role.
+    const fallback = req.session.user
+      ? dashboardUrlFor(req.session.user.role)
+      : '/login';
+    return res.redirect(req.get('Referrer') || fallback);
   }
 
   return res.status(status).render('errors/error', {
@@ -33,6 +39,12 @@ function errorHandler(err, req, res, next) {
     status,
     message,
   });
+}
+
+function dashboardUrlFor(role) {
+  if (role === 'ADMIN') return '/admin/dashboard';
+  if (role === 'DRIVER') return '/driver/dashboard';
+  return '/passenger/dashboard';
 }
 
 module.exports = { notFoundHandler, errorHandler };

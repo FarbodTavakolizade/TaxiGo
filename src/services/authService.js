@@ -7,6 +7,7 @@ const {
   validateName,
   validateEmail,
   validatePassword,
+  validateRequired,
   firstError,
 } = require('../utils/validators');
 
@@ -48,7 +49,12 @@ async function register({ name, email, password, role }) {
  * (without password). Throws AppError when login is not possible.
  */
 async function login({ email, password }) {
-  const error = firstError(validateEmail(email), validatePassword(password));
+  // On login only presence is required; the credential check itself
+  // produces the (deliberately vague) error message.
+  const error = firstError(
+    validateEmail(email),
+    validateRequired(password, 'Password')
+  );
   if (error) throw new AppError(400, error);
 
   const user = await userRepository.findByEmail(email.trim().toLowerCase());
