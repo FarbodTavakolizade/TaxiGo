@@ -1,5 +1,5 @@
 // Loads configuration from the .env file (see .env.example).
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 module.exports = {
   port: Number(process.env.PORT) || 3000,

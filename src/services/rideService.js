@@ -137,7 +137,10 @@ async function driverTransition(user, rideId, fromStatus, toStatus) {
   }
 
   if (ride.status !== fromStatus) {
-    throw new AppError(400, `Only a ${fromStatus.toLowerCase()} ride can be marked as ${toStatus.toLowerCase()}.`);
+    throw new AppError(
+      400,
+      `Only a ride with status ${fromStatus} can be marked as ${toStatus}.`
+    );
   }
 
   if (!canTransition(fromStatus, toStatus)) {
