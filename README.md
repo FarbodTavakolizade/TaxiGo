@@ -220,6 +220,28 @@ university_project/
 
 ---
 
+## Demo walkthrough
+
+A complete demonstration of the system (three browser windows or three
+incognito tabs):
+
+1. **Passenger** logs in as `passenger@taxi.local` → *Request Taxi* → enter an
+   origin and a destination → submit. The ride appears with the REQUESTED
+   badge. (Optional: cancel a second request to show cancellation.)
+2. **Driver** logs in as `driver@taxi.local` → the request is listed under
+   *Available ride requests* → **Accept** → the ride becomes the active ride
+   (ACCEPTED) → **Start Ride** (STARTED) → **Complete Ride** (COMPLETED).
+3. **Passenger** refreshes *My Rides* → status badge shows COMPLETED, and the
+   dashboard counters update.
+4. **Admin** logs in as `admin@taxi.local` → dashboard shows the updated
+   statistics → *Users* lets the admin deactivate a user (a deactivated user
+   can no longer log in) → *Rides* shows every ride in the system.
+
+Invalid actions to demonstrate as well: accepting an already accepted ride,
+cancelling a started ride, and a passenger opening an admin URL (403).
+
+---
+
 ## Ride status workflow
 
 ```
