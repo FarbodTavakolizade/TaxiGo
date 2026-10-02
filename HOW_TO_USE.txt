@@ -1,0 +1,311 @@
+============================================================================
+       TAXI REQUEST SYSTEM - SIMPLE USER GUIDE (HOW TO USE EVERYTHING)
+============================================================================
+
+This file shows EVERYTHING in the project in the simplest way:
+  - the accounts and passwords
+  - every page and every button
+  - the complete taxi trip from start to finish
+  - what the system does behind the scenes (map, route, price)
+
+----------------------------------------------------------------------------
+PART 1 - START THE SYSTEM (2 STEPS)
+----------------------------------------------------------------------------
+
+STEP 1: Start the database (only if the computer was restarted)
+
+  Open "Command Prompt" and paste this one line:
+
+  "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D C:\Users\Asus\taxi_pgdata -o "-p 5544" -l C:\Users\Asus\taxi_pgdata\pg.log start
+
+  You should see:  "server started"
+
+STEP 2: Start the website
+
+  Open "Command Prompt" and paste these two lines:
+
+  cd C:\Users\Asus\Desktop\university_project
+  npm start
+
+  You should see:  "Taxi system is running at http://localhost:3000"
+
+NOW OPEN THE BROWSER AND GO TO:   http://localhost:3000
+
+----------------------------------------------------------------------------
+PART 2 - ALL ACCOUNTS (USERNAMES AND PASSWORDS)
+----------------------------------------------------------------------------
+
+  ROLE        EMAIL                    PASSWORD        MAP LOCATION
+  ----------  -----------------------  --------------  --------------
+  Admin       admin@taxi.local         admin123        (no location)
+  Driver 1    driver@taxi.local        driver123       Vanak
+  Driver 2    driver2@taxi.local       driver123       Tajrish
+  Driver 3    driver3@taxi.local       driver123       Azadi
+  Driver 4    driver4@taxi.local       driver123       Sadeghieh
+  Passenger   passenger@taxi.local     passenger123    (no location)
+
+  You can also create your own account with the Register button.
+
+  IMPORTANT: the four drivers have fixed (simulated) positions on the map.
+  Driver 3 (Azadi) is the nearest one for pickups in the west of Tehran.
+  Driver 1 (Vanak) is nearest for pickups in the center/north.
+
+----------------------------------------------------------------------------
+PART 3 - ALL PAGES (URL LIST)
+----------------------------------------------------------------------------
+
+  PUBLIC
+  /login                     Login page
+  /register                  Create a new account (passenger or driver)
+
+  PASSENGER
+  /passenger/dashboard       Welcome page: ride counters + recent rides
+  /passenger/rides           List of all my rides + cancel button
+  /passenger/rides/new       THE MAP PAGE: request a taxi here
+  /passenger/rides/4         Details of ride number 4 (map + driver + price)
+
+  DRIVER
+  /driver/dashboard          Available requests + my current ride + map
+  /driver/rides              My ride history
+  /driver/rides/4            Details of my current ride (map + route)
+
+  ADMIN
+  /admin/dashboard           Statistics of the whole system
+  /admin/users               All users + activate/deactivate buttons
+  /admin/rides               All rides of the whole system
+
+  ANY TIME
+  /logout                    Log out (returns to the login page)
+
+----------------------------------------------------------------------------
+PART 4 - HOW TO USE: PASSENGER (the main demo)
+----------------------------------------------------------------------------
+
+STEP 1: LOGIN
+  - Go to http://localhost:3000
+  - Email:    passenger@taxi.local
+  - Password: passenger123
+  - Click "Login"
+  - You land on the Passenger Dashboard.
+
+STEP 2: WHAT YOU SEE ON THE DASHBOARD
+  - "Current rides" (rides that are not finished yet)
+  - "Completed rides"
+  - A table of the recent rides with a colored status badge
+  - A green "Request Taxi" button in the corner
+
+STEP 3: REQUEST A TAXI (with the map)
+  - Click "Request Taxi"
+  - The Tehran map opens. The small taxi icons are the available drivers.
+  - Click "Select Origin" then click a point on the map  -> green pin "A"
+  - Click a second point -> red pin "B" (this happens automatically)
+  - You can drag a pin to move it, or press "Reset" to start over
+  - Click "Calculate Route"
+      -> a green line appears (the shortest road route)
+      -> Distance, Estimated time and Estimated price are shown
+         Example: 12.1 km / 24 min / 171,000 Toman
+  - Click "Request Taxi"
+  - DONE: the system finds the NEAREST driver automatically.
+    You are taken to the ride details page and you see:
+      - your ride number (for example #4)
+      - the status ACCEPTED
+      - the driver name and where the driver is (for example "near Vanak")
+      - the map with A (you), B (destination) and the taxi (your driver)
+
+STEP 4: WATCH YOUR RIDE
+  - The status badge updates by itself every few seconds
+    (REQUESTED -> ACCEPTED -> STARTED -> COMPLETED)
+  - "My Rides" shows the full list with distance and price columns
+
+STEP 5: CANCEL A RIDE (only before it starts)
+  - Go to "My Rides"
+  - Next to a REQUESTED or ACCEPTED ride, click "Cancel"
+  - Confirm the popup -> the status becomes CANCELLED
+  - A STARTED or COMPLETED ride cannot be cancelled (the button disappears)
+
+NOTE - REQUEST WITHOUT THE MAP:
+  You can also just type an address in the Origin and Destination boxes and
+  press "Request Taxi". Then there is no automatic driver, the ride stays
+  REQUESTED and any driver can accept it manually.
+
+----------------------------------------------------------------------------
+PART 5 - HOW TO USE: DRIVER
+----------------------------------------------------------------------------
+
+STEP 1: LOGIN
+  - Go to http://localhost:3000/logout first (to switch user)
+  - Email:    driver4@taxi.local      (this is Neda, at Sadeghieh)
+  - Password: driver123
+  - Click "Login"
+
+STEP 2: DRIVER DASHBOARD
+  - "Completed rides" counter
+  - "Available requests" counter
+  - "Your location" (your simulated position, for example Sadeghieh)
+  - "Current ride" card = the ride the system assigned to you
+  - A map showing: your taxi, the pickup point A, destination B, and the route
+
+STEP 3: DO THE RIDE (3 BUTTONS, IN ORDER)
+  - Click "Start Ride"    -> status becomes STARTED
+  - Click "Complete Ride" -> status becomes COMPLETED
+  - The passenger sees the new status immediately
+
+STEP 4: OTHER THINGS A DRIVER CAN DO
+  - "Cancel" cancels the ride while it is ACCEPTED
+  - "Open ride map" opens the big ride details page with the route
+  - "Available ride requests" table = rides waiting for a manual driver
+    (these are the plain-text rides without map coordinates)
+    Click "Accept" to take one yourself
+  - "My Rides" in the menu = your complete ride history
+
+RULES THE SYSTEM ENFORCES (try them for the demo):
+  - You cannot accept a ride that another driver already accepted
+  - You cannot start, complete or cancel another driver's ride
+  - You cannot complete a ride you have not started yet
+
+----------------------------------------------------------------------------
+PART 6 - HOW TO USE: ADMIN
+----------------------------------------------------------------------------
+
+STEP 1: LOGIN
+  - Log out first, then:
+  - Email:    admin@taxi.local
+  - Password: admin123
+
+STEP 2: DASHBOARD (/admin/dashboard)
+  Shows the statistics of the whole system:
+    Total users, Drivers, Passengers,
+    Total rides, Completed rides, Cancelled rides
+
+STEP 3: USERS PAGE (/admin/users)
+  - The table shows every user, their role and ACTIVE/INACTIVE status
+  - Click "Deactivate" on a user:
+      -> that user can no longer log in
+      -> if they are already logged in, they are kicked out on the next click
+  - Click "Activate" to give the account back
+  - You cannot deactivate your own admin account (the system blocks it)
+
+STEP 4: RIDES PAGE (/admin/rides)
+  - Every ride in the system, with passenger, driver, distance, price,
+    status and time
+
+----------------------------------------------------------------------------
+PART 7 - REGISTRATION (CREATE YOUR OWN ACCOUNT)
+----------------------------------------------------------------------------
+
+  1. On the login page click "Register here"
+  2. Fill in: Name, Email, Password (minimum 6 characters)
+  3. Choose the role: Passenger or Driver
+     (Admin cannot be chosen - for safety)
+  4. Click "Register" and then log in with the new account
+
+  Rules: the email must be valid and must not already exist.
+
+----------------------------------------------------------------------------
+PART 8 - WHAT THE SYSTEM DOES BEHIND THE SCENES
+----------------------------------------------------------------------------
+
+THE MAP
+  Leaflet draws the map, OpenStreetMap provides the street pictures.
+  Both are free and need no API key or Google Maps.
+
+THE ROUTE (Dijkstra shortest path - the university topic)
+  1. Your two map points are snapped to the nearest points of a small
+     simplified Tehran road network (13 places, 20 roads, for example
+     Azadi - Sadeghieh - Vanak - Tajrish - Airport).
+  2. Dijkstra's algorithm finds the shortest path through that network.
+  3. The result is drawn as the green line, together with the distance.
+  4. If you pick a point far outside Tehran, the system shows a friendly
+     message and falls back to the straight-line distance instead of
+     crashing.
+
+THE PRICE (very simple, no surge/traffic/discounts)
+  price    = 50,000 + (distance in km x 10,000)   Toman, rounded
+  Example: 12.1 km -> 50,000 + 121,000 = 171,000 Toman
+
+THE TIME
+  time     = distance / 30 km/h   (30 km/h is the average city speed)
+  Example: 12.1 km -> about 24 minutes
+
+THE DRIVER ASSIGNMENT (simple nearest-driver)
+  1. All free drivers are collected (active, has a location, no current ride)
+  2. The straight-line distance from your pickup point to each driver
+     is calculated
+  3. The nearest driver gets the ride and the ride starts as ACCEPTED
+
+  These numbers (base fare, price per km, speed) live in ONE file:
+  src\config.js - change them there and the whole system uses the new values.
+
+----------------------------------------------------------------------------
+PART 9 - THE RIDE STATUS RULES
+----------------------------------------------------------------------------
+
+  REQUESTED  -> ACCEPTED  (driver accepts, or automatic assignment)
+  REQUESTED  -> CANCELLED (passenger cancels)
+  ACCEPTED   -> STARTED   (driver starts)
+  ACCEPTED   -> CANCELLED (driver or passenger cancels)
+  STARTED    -> COMPLETED (driver completes)
+
+  Nothing else is allowed. COMPLETED and CANCELLED are final.
+
+----------------------------------------------------------------------------
+PART 10 - DEMO SCRIPT (5 MINUTES, IN ORDER)
+----------------------------------------------------------------------------
+
+  1. Login as passenger@taxi.local
+  2. Click "Request Taxi", pick two points on the map, press "Calculate Route"
+     -> show the route line, the distance and the price
+  3. Press "Request Taxi" -> show the assigned driver on the map (ACCEPTED)
+  4. Logout, login as that driver
+  5. Driver dashboard: show the map with pickup, destination, route
+  6. Press "Start Ride", then "Complete Ride"
+  7. Logout, login as passenger again -> ride details show COMPLETED
+  8. Logout, login as admin -> dashboard statistics and the users page
+  9. Optional: deactivate a user in the admin users page and show that the
+     user can no longer log in
+ 10. Optional: run "npm test" in the project folder -> 82 tests pass
+
+----------------------------------------------------------------------------
+PART 11 - PROBLEMS AND SOLUTIONS
+----------------------------------------------------------------------------
+
+  "Cannot connect to the database"
+     -> The database is not running. Run the STEP 1 command in Part 1.
+        Check with: netstat -an | findstr 5544
+
+  "Port 3000 already in use"
+     -> The website is probably already running. Close the other window or
+        change PORT=3000 to another number in the .env file.
+
+  The map is grey / no streets visible
+     -> The street pictures come from the internet (OpenStreetMap).
+        Check the internet connection. Everything else works without it.
+
+  "Email or password is incorrect"
+     -> Check the exact email and password from Part 2 of this file.
+
+  Nothing appears on the map after "Calculate Route"
+     -> Make sure BOTH pins (A and B) are on the map before calculating.
+
+  I want a fresh start with clean demo data
+     -> In the project folder run:  npm run db:setup
+
+----------------------------------------------------------------------------
+PART 12 - PROJECT FILES (QUICK MAP)
+----------------------------------------------------------------------------
+
+  src/services/routingService.js    Dijkstra + nearest graph node + fallback
+  src/services/pricingService.js    price and time formulas
+  src/services/driverService.js     nearest driver selection
+  src/data/tehranGraph.js           the simplified Tehran road network
+  src/config.js                     base fare, price per km, average speed
+  public/js/request-map.js          map clicking + Calculate Route button
+  database/schema.sql               the database tables
+  docs/routing.md                   full explanation of map + routing
+  README.md                         full project documentation
+
+  Run the tests any time with:  npm test
+
+============================================================================
+                        END OF GUIDE - GOOD LUCK!
+============================================================================
