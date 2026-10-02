@@ -1,0 +1,28 @@
+{
+  "name": "taxi-system",
+  "version": "1.0.0",
+  "description": "University project: Taxi Request and Transportation Management System",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "db:setup": "node src/db/setup.js",
+    "test": "jest"
+  },
+  "keywords": [
+    "express",
+    "postgresql",
+    "university-project"
+  ],
+  "author": "Student",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^18.0.5",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "pg": "^8.23.1"
+  }
+}

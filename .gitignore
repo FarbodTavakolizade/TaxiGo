@@ -1,0 +1,18 @@
+# Dependencies
+node_modules/
+
+# Environment configuration (never commit real credentials)
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage output
+coverage/
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

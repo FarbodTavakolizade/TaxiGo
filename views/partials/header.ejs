@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><%= typeof title !== 'undefined' ? title + ' | Taxi System' : 'Taxi System' %></title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a class="brand" href="/">Taxi System</a>
+      <nav class="nav-links">
+        <% if (!currentUser) { %>
+          <a href="/login">Login</a>
+          <a href="/register">Register</a>
+        <% } else { %>
+          <% if (currentUser.role === 'PASSENGER') { %>
+            <a href="/passenger/dashboard">Dashboard</a>
+            <a href="/passenger/rides">My Rides</a>
+            <a href="/passenger/rides/new">Request Taxi</a>
+          <% } else if (currentUser.role === 'DRIVER') { %>
+            <a href="/driver/dashboard">Dashboard</a>
+            <a href="/driver/rides">My Rides</a>
+          <% } else if (currentUser.role === 'ADMIN') { %>
+            <a href="/admin/dashboard">Dashboard</a>
+            <a href="/admin/users">Users</a>
+            <a href="/admin/rides">Rides</a>
+          <% } %>
+          <span class="nav-user"><%= currentUser.name %> (<%= currentUser.role.toLowerCase() %>)</span>
+          <a class="nav-logout" href="/logout">Logout</a>
+        <% } %>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <% if (flash.success) { %>
+      <div class="flash flash-success"><%= flash.success %></div>
+    <% } %>
+    <% if (flash.error) { %>
+      <div class="flash flash-error"><%= flash.error %></div>
+    <% } %>
