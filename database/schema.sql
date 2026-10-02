@@ -7,6 +7,7 @@
 -- =====================================================================
 
 -- Drop in reverse dependency order so the script can be re-run safely.
+DROP TABLE IF EXISTS driver_locations;
 DROP TABLE IF EXISTS rides;
 DROP TABLE IF EXISTS users;
 
@@ -34,6 +35,15 @@ CREATE TABLE rides (
   destination     VARCHAR(200) NOT NULL,
   status          VARCHAR(20)  NOT NULL DEFAULT 'REQUESTED'
                   CHECK (status IN ('REQUESTED', 'ACCEPTED', 'STARTED', 'COMPLETED', 'CANCELLED')),
+  -- Map coordinates (NULL for rides requested without the map)
+  origin_lat         DOUBLE PRECISION,
+  origin_lng         DOUBLE PRECISION,
+  destination_lat    DOUBLE PRECISION,
+  destination_lng    DOUBLE PRECISION,
+  -- Route estimates calculated by the routing/pricing services
+  distance_km        DOUBLE PRECISION,
+  estimated_duration INTEGER,   -- minutes
+  estimated_price    INTEGER,   -- Toman
   created_at      TIMESTAMP NOT NULL DEFAULT NOW(),
   accepted_at     TIMESTAMP,
   started_at      TIMESTAMP,
@@ -45,3 +55,16 @@ CREATE TABLE rides (
 CREATE INDEX idx_rides_passenger ON rides(passenger_id);
 CREATE INDEX idx_rides_driver    ON rides(driver_id);
 CREATE INDEX idx_rides_status    ON rides(status);
+
+-- ---------------------------------------------------------------------
+-- driver_locations
+-- Simulated locations of the demo drivers (no real GPS).
+-- ---------------------------------------------------------------------
+CREATE TABLE driver_locations (
+  id        SERIAL PRIMARY KEY,
+  driver_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
+  area      VARCHAR(100) NOT NULL,
+  lat       DOUBLE PRECISION NOT NULL,
+  lng       DOUBLE PRECISION NOT NULL
+);
+
