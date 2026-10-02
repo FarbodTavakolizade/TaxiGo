@@ -126,6 +126,18 @@ Only the following states and transitions exist:
 | FR-7.5 | Errors are shown as friendly messages in the GUI; no stack traces or SQL errors. |
 | FR-7.6 | Unexpected server errors return HTTP 500 with a generic message.             |
 
+### 4.8 Appearance (light / dark theme)
+
+| ID     | Requirement                                                                 |
+|--------|-----------------------------------------------------------------------------|
+| FR-9.1 | A toggle in the navigation bar switches the interface between light and dark mode. |
+| FR-9.2 | The selected theme applies to every page: login, register, all dashboards, ride request, ride details, ride history, tables, cards, forms, buttons, navigation, messages and map panels. |
+| FR-9.3 | The theme preference is stored in the browser (`localStorage`) and restored on the next visit, including after a full page reload. |
+| FR-9.4 | The theme is applied before the first paint, so a dark page does not flash white while loading. |
+| FR-9.5 | The interactive map stays usable in both themes (markers, routes, polylines, drivers, controls). |
+| FR-9.6 | Text keeps a readable contrast in dark mode (WCAG AA for normal text).       |
+| FR-9.7 | The theme feature is frontend only: it adds no database column, no API endpoint and no backend logic. |
+
 ## 5. Non-functional requirements
 
 | ID      | Requirement                                                                  |
@@ -146,6 +158,7 @@ Only the following states and transitions exist:
 | NFR-14  | Routing runs locally on a small built-in graph (no external routing service). |
 | NFR-15  | The OpenStreetMap attribution is shown on every map (license requirement).   |
 | NFR-16  | Database changes for existing installations are applied with idempotent migrations that never destroy data. |
+| NFR-17  | Theming uses CSS variables and Vanilla JavaScript only; it adds no new dependency and no build step. |
 
 ## 6. External interfaces
 

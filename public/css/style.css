@@ -1,29 +1,145 @@
 /* =====================================================================
-   Taxi System - stylesheet
-   Green / white taxi-app look: rounded cards, soft shadows, status
-   badges, responsive layout. Plain CSS3, no frameworks.
+   TaxiGo - stylesheet
+   Green / white taxi-app look with a Light and Dark theme.
+
+   Every color is a CSS variable defined once in :root (light theme) and
+   overridden in [data-theme="dark"]. The dark theme is applied by
+   public/js/theme.js (plus a tiny inline script in the page head so the
+   saved theme is active before the first paint).
+
+   Plain CSS3, no frameworks, no new dependencies.
    ===================================================================== */
 
+/* ===================== Theme variables: LIGHT (default) ============== */
 :root {
+  color-scheme: light;
+
   /* Brand */
   --color-primary: #00b074;
-  --color-primary-dark: #009160;
-  --color-primary-light: #e6f7f0;
-  --color-accent: #ffc107;
+  --color-primary-dark: #009160;      /* also used as green text on subtle green */
+  --color-primary-light: #e6f7f0;     /* subtle green surface */
+  --color-primary-border: #bfe9d8;
+  --color-primary-shadow: rgba(0, 176, 116, 0.28);
+  /* Text placed on a saturated accent background (green button, colored
+     map pin). White in light mode; in dark mode the accent is brighter,
+     so a dark text color is used instead to keep a readable contrast. */
+  --text-on-accent: #ffffff;
 
-  /* Status colors */
-  --color-danger: #e5484d;
+  /* Text */
   --color-text: #17212b;
   --color-muted: #6b7a86;
-  --color-border: #e6ebef;
-  --color-bg: #f4f7f9;
 
+  /* Surfaces */
+  --color-bg: #f4f7f9;                /* page background */
+  --color-surface: #ffffff;           /* cards, navbar, footer, tables */
+  --color-surface-2: #f8fafb;         /* table header, row hover */
+  --color-surface-3: #fbfcfd;         /* inputs, empty state */
+
+  /* Borders */
+  --color-border: #e6ebef;
+
+  /* Danger */
+  --color-danger: #e5484d;
+  --color-danger-bg: #fdeeee;
+  --color-danger-border: #f3c3c5;
+
+  /* Buttons */
+  --btn-disabled-bg: #c9d3da;
+
+  /* Flash messages */
+  --flash-success-bg: #e6f7f0;
+  --flash-success-border: #9fdfc6;
+  --flash-success-text: #04573c;
+  --flash-error-bg: #fdeeee;
+  --flash-error-border: #f3c3c5;
+  --flash-error-text: #8c1d21;
+
+  /* Status badges */
+  --badge-requested-bg: #fff4d6;
+  --badge-requested-text: #8a6100;
+  --badge-accepted-bg: #e0edff;
+  --badge-accepted-text: #1a56c4;
+  --badge-started-bg: #efe4ff;
+  --badge-started-text: #6b2fc9;
+  --badge-completed-bg: var(--color-primary-light);
+  --badge-completed-text: var(--color-primary-dark);
+  --badge-cancelled-bg: #eceff2;
+  --badge-cancelled-text: #5c6b77;
+
+  /* Map */
+  --map-pin-border: #ffffff;
+  --map-pin-driver-bg: #17212b;
+
+  /* Layout */
   --radius: 14px;
   --radius-small: 10px;
   --shadow: 0 2px 10px rgba(23, 33, 43, 0.06);
   --shadow-hover: 0 6px 18px rgba(23, 33, 43, 0.1);
 }
 
+/* ===================== Theme variables: DARK ========================= */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Brand: slightly brighter green so it stands out on dark surfaces. */
+  --color-primary: #22c55e;
+  --color-primary-dark: #4ade80;      /* light green used for text/links */
+  --color-primary-light: #14322a;     /* dark green tint surface */
+  --color-primary-border: #1f4d3a;
+  --color-primary-shadow: rgba(34, 197, 94, 0.22);
+  /* Dark text on the brighter green accent: 7.8:1 instead of 2.3:1. */
+  --text-on-accent: #0d1a13;
+
+  /* Text */
+  --color-text: #e8edf2;
+  --color-muted: #9aa7b2;
+
+  /* Surfaces: dark gray, never pure black. */
+  --color-bg: #161a1d;
+  --color-surface: #1f262b;
+  --color-surface-2: #262e34;
+  --color-surface-3: #12171a;
+
+  /* Borders: clearly visible against the cards. */
+  --color-border: #333d44;
+
+  /* Danger */
+  --color-danger: #ff6b70;
+  --color-danger-bg: #3a1b1d;
+  --color-danger-border: #5c2a2d;
+
+  /* Buttons */
+  --btn-disabled-bg: #3a444b;
+
+  /* Flash messages */
+  --flash-success-bg: #14322a;
+  --flash-success-border: #2b6b4f;
+  --flash-success-text: #7ee2b0;
+  --flash-error-bg: #3a1b1d;
+  --flash-error-border: #6e2f33;
+  --flash-error-text: #ff9a9d;
+
+  /* Status badges */
+  --badge-requested-bg: #3d2f00;
+  --badge-requested-text: #ffd166;
+  --badge-accepted-bg: #16304f;
+  --badge-accepted-text: #7fb4ff;
+  --badge-started-bg: #2a1f45;
+  --badge-started-text: #c4a5ff;
+  --badge-completed-bg: #14322a;
+  --badge-completed-text: #6ee7a8;
+  --badge-cancelled-bg: #333a40;
+  --badge-cancelled-text: #adb8c0;
+
+  /* Map */
+  --map-pin-border: #e8edf2;
+  --map-pin-driver-bg: #0f1418;
+
+  --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  --shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* ===================== Base ========================================= */
 * {
   box-sizing: border-box;
 }
@@ -57,7 +173,7 @@ h1, h2, h3 {
 
 /* ===== Navbar ===== */
 .navbar {
-  background: #fff;
+  background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   box-shadow: var(--shadow);
   position: sticky;
@@ -96,7 +212,7 @@ h1, h2, h3 {
   height: 32px;
   border-radius: 10px;
   background: var(--color-primary);
-  color: #fff;
+  color: var(--text-on-accent);
   font-size: 17px;
 }
 
@@ -122,7 +238,7 @@ h1, h2, h3 {
 
 .nav-links a.active {
   background: var(--color-primary);
-  color: #fff;
+  color: var(--text-on-accent);
   font-weight: 600;
 }
 
@@ -136,9 +252,41 @@ h1, h2, h3 {
   color: var(--color-danger) !important;
 }
 
+/* ===== Theme toggle button (navigation bar) ===== */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border-color: var(--color-primary-border);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle-icon {
+  font-size: 14px;
+}
+
 /* ===== Cards ===== */
 .card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 22px;
@@ -224,11 +372,11 @@ h1, h2, h3 {
   height: 30px;
   border-radius: 50% 50% 50% 4px;
   transform: rotate(-45deg);
-  color: #fff;
+  color: var(--text-on-accent);
   font-weight: 700;
   font-size: 13px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  border: 2px solid #fff;
+  border: 2px solid var(--map-pin-border);
 }
 
 .map-pin > * {
@@ -244,7 +392,7 @@ h1, h2, h3 {
 }
 
 .map-pin-driver {
-  background: #17212b;
+  background: var(--map-pin-driver-bg);
   font-size: 12px;
 }
 
@@ -253,7 +401,7 @@ h1, h2, h3 {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-small);
   overflow: hidden;
@@ -268,7 +416,7 @@ h1, h2, h3 {
 }
 
 .table th {
-  background: #f8fafb;
+  background: var(--color-surface-2);
   font-weight: 600;
   color: var(--color-muted);
   font-size: 13px;
@@ -277,7 +425,7 @@ h1, h2, h3 {
 }
 
 .table tbody tr:hover td {
-  background: #fbfdfe;
+  background: var(--color-surface-2);
 }
 
 .table tr:last-child td {
@@ -303,11 +451,11 @@ h1, h2, h3 {
   letter-spacing: 0.02em;
 }
 
-.badge-REQUESTED { background: #fff4d6; color: #8a6100; }
-.badge-ACCEPTED  { background: #e0edff; color: #1a56c4; }
-.badge-STARTED   { background: #efe4ff; color: #6b2fc9; }
-.badge-COMPLETED { background: var(--color-primary-light); color: var(--color-primary-dark); }
-.badge-CANCELLED { background: #eceff2; color: #5c6b77; }
+.badge-REQUESTED { background: var(--badge-requested-bg); color: var(--badge-requested-text); }
+.badge-ACCEPTED  { background: var(--badge-accepted-bg);  color: var(--badge-accepted-text); }
+.badge-STARTED   { background: var(--badge-started-bg);   color: var(--badge-started-text); }
+.badge-COMPLETED { background: var(--badge-completed-bg); color: var(--badge-completed-text); }
+.badge-CANCELLED { background: var(--badge-cancelled-bg); color: var(--badge-cancelled-text); }
 
 /* ===== Buttons ===== */
 .btn {
@@ -336,8 +484,8 @@ h1, h2, h3 {
 
 .btn-primary {
   background: var(--color-primary);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 176, 116, 0.28);
+  color: var(--text-on-accent);
+  box-shadow: 0 2px 8px var(--color-primary-shadow);
 }
 
 .btn-primary:hover {
@@ -345,29 +493,30 @@ h1, h2, h3 {
 }
 
 .btn-primary:disabled {
-  background: #c9d3da;
+  background: var(--btn-disabled-bg);
   box-shadow: none;
   cursor: not-allowed;
+  color: var(--color-muted);
 }
 
 .btn-secondary {
   background: var(--color-primary-light);
   color: var(--color-primary-dark);
-  border-color: #bfe9d8;
+  border-color: var(--color-primary-border);
 }
 
 .btn-secondary:hover {
-  background: #d5f2e6;
+  background: var(--color-primary-border);
 }
 
 .btn-danger {
-  background: #fff;
+  background: var(--color-surface);
   color: var(--color-danger);
-  border-color: #f3c3c5;
+  border-color: var(--color-danger-border);
 }
 
 .btn-danger:hover {
-  background: #fdeeee;
+  background: var(--color-danger-bg);
 }
 
 .btn-small {
@@ -376,7 +525,7 @@ h1, h2, h3 {
 }
 
 .btn-chip {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   color: var(--color-text);
   padding: 8px 14px;
@@ -420,7 +569,8 @@ h1, h2, h3 {
   border-radius: var(--radius-small);
   font-size: 14px;
   font-family: inherit;
-  background: #fbfcfd;
+  color: var(--color-text);
+  background: var(--color-surface-3);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -428,8 +578,8 @@ h1, h2, h3 {
 .form-group select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(0, 176, 116, 0.15);
-  background: #fff;
+  box-shadow: 0 0 0 3px var(--color-primary-shadow);
+  background: var(--color-surface);
 }
 
 .form-hint {
@@ -441,7 +591,7 @@ h1, h2, h3 {
 /* ===== Estimate box (distance / time / price) ===== */
 .estimate-box {
   background: var(--color-primary-light);
-  border: 1px solid #bfe9d8;
+  border: 1px solid var(--color-primary-border);
   border-radius: var(--radius-small);
   padding: 12px 16px;
   margin: 16px 0;
@@ -468,15 +618,15 @@ h1, h2, h3 {
 }
 
 .flash-success {
-  background: var(--color-primary-light);
-  border: 1px solid #9fdfc6;
-  color: #04573c;
+  background: var(--flash-success-bg);
+  border: 1px solid var(--flash-success-border);
+  color: var(--flash-success-text);
 }
 
 .flash-error {
-  background: #fdeeee;
-  border: 1px solid #f3c3c5;
-  color: #8c1d21;
+  background: var(--flash-error-bg);
+  border: 1px solid var(--flash-error-border);
+  color: var(--flash-error-text);
 }
 
 /* ===== Stats cards ===== */
@@ -488,7 +638,7 @@ h1, h2, h3 {
 }
 
 .stat-card {
-  background: #fff;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   padding: 18px;
@@ -521,8 +671,8 @@ h1, h2, h3 {
   padding: 28px;
   text-align: center;
   color: var(--color-muted);
-  background: #fbfcfd;
-  border: 1px dashed #d7dee4;
+  background: var(--color-surface-3);
+  border: 1px dashed var(--color-border);
   border-radius: var(--radius-small);
 }
 
@@ -543,5 +693,52 @@ h1, h2, h3 {
   font-size: 13px;
   text-align: center;
   border-top: 1px solid var(--color-border);
-  background: #fff;
+  background: var(--color-surface);
+}
+
+/* =====================================================================
+   Leaflet map in dark mode
+   Only the tile images are filtered; the marker and route layers keep
+   their real colors, so origin/destination/driver pins and the route
+   polyline stay exactly as in light mode.
+   ===================================================================== */
+[data-theme="dark"] .leaflet-container {
+  background: #1b2126;
+}
+
+[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
+[data-theme="dark"] .leaflet-bar a,
+[data-theme="dark"] .leaflet-bar a:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  border-bottom-color: var(--color-border);
+}
+
+[data-theme="dark"] .leaflet-bar a:hover {
+  background: var(--color-surface);
+}
+
+/* The extra .leaflet-container class is needed to outweigh Leaflet's own
+   ".leaflet-container .leaflet-control-attribution" rule, which is loaded
+   after this stylesheet in the map pages. */
+[data-theme="dark"] .leaflet-container .leaflet-control-attribution {
+  background: rgba(31, 38, 43, 0.85);
+  color: var(--color-muted);
+}
+
+[data-theme="dark"] .leaflet-container .leaflet-control-attribution a {
+  color: var(--color-primary-dark);
+}
+
+[data-theme="dark"] .leaflet-popup-content-wrapper,
+[data-theme="dark"] .leaflet-popup-tip {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+[data-theme="dark"] .leaflet-popup-content-wrapper {
+  border: 1px solid var(--color-border);
 }

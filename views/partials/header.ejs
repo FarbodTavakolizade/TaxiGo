@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><%= typeof title !== 'undefined' ? title + ' | Taxi System' : 'Taxi System' %></title>
   <link rel="stylesheet" href="/css/style.css" />
+  <script>
+    // Applies the saved theme before the first paint, so switching to dark
+    // mode and reloading never flashes a white page. The full toggle logic
+    // lives in /js/theme.js.
+    try {
+      if (localStorage.getItem('taxigo-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {
+      // localStorage unavailable (private mode): fall back to light mode.
+    }
+  </script>
 </head>
 <body>
   <header class="navbar">
@@ -34,6 +46,13 @@
           <span class="nav-user"><%= currentUser.name %> (<%= currentUser.role.toLowerCase() %>)</span>
           <a class="nav-logout" href="/logout">Logout</a>
         <% } %>
+
+        <%# Theme toggle: switches between light and dark mode (frontend only). %>
+        <button type="button" class="theme-toggle" id="theme-toggle"
+                aria-pressed="false" title="Switch to dark mode">
+          <span class="theme-toggle-icon" id="theme-toggle-icon">🌙</span>
+          <span id="theme-toggle-label">Dark</span>
+        </button>
       </nav>
     </div>
   </header>

@@ -109,6 +109,26 @@ These were executed in the browser/HTTP during development:
 | M27| Request button state                 | Calculate a route, then look at the button                   | "Request Taxi" becomes enabled and the hidden coordinate fields are filled | Pass (after BUG-8 fix) |
 | M28| Unauthenticated API access           | Call /api/drivers, /api/route or /api/rides/1 without a session | Redirected to /login; no data returned              | Pass   |
 
+## 5a. Manual test cases - Light / Dark theme
+
+Theme switching is browser behaviour (CSS variables + `localStorage`), so it is
+verified manually in the browser rather than with Jest.
+
+| # | Scenario                       | Steps                                              | Expected result                                        | Result |
+|---|--------------------------------|----------------------------------------------------|--------------------------------------------------------|--------|
+| T1| Light mode default             | Open any page with no saved preference             | Light theme; toggle shows "🌙 Dark"                    | Pass   |
+| T2| Switch to dark                 | Click the toggle                                   | Page turns dark; label switches to "☀️ Light"          | Pass   |
+| T3| Dark mode persists on reload   | Switch to dark, press F5                           | Still dark after reload; no white flash while loading  | Pass   |
+| T4| Dark mode persists across pages| Switch to dark, navigate to other pages            | Dark on every page                                     | Pass   |
+| T5| Switch back to light           | Click the toggle again, reload                     | Light theme restored and remembered                    | Pass   |
+| T6| All pages themed               | Visit login, register, passenger, driver, admin pages | Every page dark; no leftover white areas             | Pass   |
+| T7| Tables and badges              | Check ride/admin tables in dark mode               | Dark rows, readable header text, colored status badges | Pass   |
+| T8| Forms and messages             | Check inputs, flash messages, estimate box         | Dark inputs, readable success/error messages           | Pass   |
+| T9| Map in dark mode               | Open the request page and driver dashboard         | Tiles inverted, controls and attribution dark, markers and route unchanged; route calculation still works | Pass |
+| T10| Contrast check                | Measure text/background contrast in dark mode       | All normal text ≥ 4.5:1 (buttons 7.85:1)              | Pass   |
+| T11| Mobile / small window         | Resize to ~420 px wide, toggle the theme           | Toggle visible and usable, no horizontal page overflow | Pass  |
+| T12| No regressions                | Run `npm test` after the change                    | 82 tests pass; no backend file modified                | Pass   |
+
 ## 6. Notes
 
 - Tests mock `src/repositories/*`, so no database connection is opened during

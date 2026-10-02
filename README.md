@@ -58,6 +58,8 @@ layered architecture, and a minimal dependency list.
 - Centralized error handling (no stack traces shown to users)
 - Ride status workflow strictly limited to the allowed transitions
 - Green/white taxi-app interface (plain CSS3, responsive, no frameworks)
+- **Light and Dark mode** with a toggle in the navigation bar (saved in
+  `localStorage`; frontend only, no database or backend involvement)
 
 ---
 
@@ -229,9 +231,10 @@ university_project/
 │   └── errors/                # Error page
 │
 ├── public/
-│   ├── css/style.css          # Green/white taxi-app stylesheet
+│   ├── css/style.css          # Taxi-app stylesheet with light + dark themes
 │   ├── js/
 │   │   ├── main.js            # Confirm dialogs
+│   │   ├── theme.js           # Light/dark toggle (localStorage)
 │   │   ├── map-utils.js       # Shared Leaflet helpers
 │   │   ├── request-map.js     # Origin/destination selection + route button
 │   │   └── ride-view.js       # Read-only ride map + status polling
@@ -282,6 +285,38 @@ duration = distanceKm / AVERAGE_SPEED_KMH   (minutes)
 
 See `docs/routing.md` for the routing algorithm, the map details and the
 driver assignment.
+
+---
+
+## Light and Dark mode
+
+A toggle button in the navigation bar (🌙 Dark / ☀️ Light) switches the whole
+interface between the two themes. The choice is saved in `localStorage`, so it
+survives page reloads and navigation, and it is applied before the first paint
+by a small inline script so there is no white flash when loading a dark page.
+
+| | Light | Dark |
+|-|-------|------|
+| Page background | light gray `#f4f7f9` | near-black gray `#161a1d` |
+| Cards / navbar | white `#ffffff` | dark gray `#1f262b` |
+| Text | dark `#17212b` | light `#e8edf2` |
+| Accent | green `#00b074` | brighter green `#22c55e` |
+| Buttons | white text on green | dark text on green (readable contrast) |
+
+Everything is driven by CSS variables defined in `public/css/style.css`:
+`:root` holds the light theme, `[data-theme="dark"]` overrides the same
+variables. `public/js/theme.js` only reads/saves the preference and sets the
+`data-theme` attribute on `<html>`.
+
+The map keeps working in dark mode: the OpenStreetMap tiles are color-inverted
+with a CSS filter, while markers, the route polyline and driver locations keep
+their colors. Leaflet zoom buttons, popups and the attribution are restyled to
+match. Only the map container and controls are affected — no map library,
+marker or routing code was changed.
+
+This feature is purely frontend (CSS variables, Vanilla JavaScript,
+`localStorage`). It adds no dependency, no database column, no API endpoint and
+no backend logic.
 
 ---
 

@@ -32,6 +32,24 @@ STEP 2: Start the website
 NOW OPEN THE BROWSER AND GO TO:   http://localhost:3000
 
 ----------------------------------------------------------------------------
+PART 1b - DARK MODE (LIGHT / DARK THEME)
+----------------------------------------------------------------------------
+
+  There is a theme button in the top navigation bar:
+
+      🌙 Dark    -> click it to switch to dark mode
+      ☀️ Light   -> click it again to switch back to light mode
+
+  - Your choice is saved in the browser (localStorage), so after a refresh
+    the page stays in the theme you picked.
+  - It works on every page: login, register, passenger, driver, admin,
+    tables, forms, buttons and the map pages.
+  - The map also turns dark (the streets are color-inverted), but the pins
+    (A, B, taxi), the green route line and the driver locations keep their
+    colors, so everything stays readable.
+  - Nothing is saved on the server and no database column is used for this.
+
+----------------------------------------------------------------------------
 PART 2 - ALL ACCOUNTS (USERNAMES AND PASSWORDS)
 ----------------------------------------------------------------------------
 
@@ -87,6 +105,7 @@ STEP 1: LOGIN
   - Password: passenger123
   - Click "Login"
   - You land on the Passenger Dashboard.
+  - Optional: click the "🌙 Dark" button in the top bar to show dark mode.
 
 STEP 2: WHAT YOU SEE ON THE DASHBOARD
   - "Current rides" (rides that are not finished yet)
