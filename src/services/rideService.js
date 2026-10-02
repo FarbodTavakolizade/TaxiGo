@@ -6,6 +6,9 @@
 const AppError = require('../errors');
 const { RIDE_STATUS, ROLES, canTransition } = require('../constants');
 const rideRepository = require('../repositories/rideRepository');
+const routingService = require('./routingService');
+const pricingService = require('./pricingService');
+const driverService = require('./driverService');
 const {
   validateRequired,
   validateMaxLength,
@@ -16,12 +19,22 @@ const {
 // Passenger
 // ---------------------------------------------------------------------
 
-/** A passenger creates a new taxi request (origin + destination). */
-async function requestRide(user, { origin, destination }) {
+/**
+ * A passenger creates a new taxi request (origin + destination).
+ *
+ * Two ways to request a ride:
+ *  - with map coordinates: the route is calculated (Dijkstra), the price
+ *    and duration are estimated, and the nearest available driver is
+ *    assigned automatically (ride starts as ACCEPTED),
+ *  - without coordinates: a plain text request as before (REQUESTED),
+ *    which any driver can accept manually.
+ */
+async function requestRide(user, input) {
   if (user.role !== ROLES.PASSENGER) {
     throw new AppError(403, 'Only passengers can request a ride.');
   }
 
+  const { origin, destination } = input;
   const error = firstError(
     validateRequired(origin, 'Origin'),
     validateMaxLength(origin, 'Origin', 200),
@@ -30,11 +43,67 @@ async function requestRide(user, { origin, destination }) {
   );
   if (error) throw new AppError(400, error);
 
-  return rideRepository.createRide({
+  const coordinates = readCoordinates(input);
+
+  // Plain text request without a map selection.
+  if (!coordinates) {
+    const ride = await rideRepository.createRide({
+      passengerId: user.id,
+      origin: origin.trim(),
+      destination: destination.trim(),
+    });
+    return { ride, assignment: null };
+  }
+
+  // Map request: route, estimates, then nearest driver.
+  const route = routingService.calculateRoute(coordinates);
+  const estimates = pricingService.estimateRide(route.distanceKm);
+  const nearest = await driverService.findNearestAvailableDriver(
+    coordinates.originLat,
+    coordinates.originLng
+  );
+
+  const ride = await rideRepository.createRide({
     passengerId: user.id,
     origin: origin.trim(),
     destination: destination.trim(),
+    originLat: coordinates.originLat,
+    originLng: coordinates.originLng,
+    destinationLat: coordinates.destinationLat,
+    destinationLng: coordinates.destinationLng,
+    distanceKm: estimates.distanceKm,
+    estimatedDuration: estimates.durationMin,
+    estimatedPrice: estimates.price,
+    driverId: nearest ? nearest.driver.id : null,
   });
+
+  return { ride, assignment: nearest };
+}
+
+/**
+ * Reads the optional map coordinates from the request form.
+ * Returns null when no coordinate was sent at all, throws when the
+ * selection is incomplete.
+ */
+function readCoordinates(input) {
+  const values = [
+    input.originLat, input.originLng,
+    input.destinationLat, input.destinationLng,
+  ].map((value) => (value === undefined || value === null || value === '' ? null : value));
+
+  const provided = values.filter((value) => value !== null);
+  if (provided.length === 0) return null;
+
+  if (provided.length < 4) {
+    throw new AppError(400, 'Please select both origin and destination on the map.');
+  }
+
+  return {
+    originLat: Number(values[0]),
+    originLng: Number(values[1]),
+    destinationLat: Number(values[2]),
+    destinationLng: Number(values[3]),
+  };
 }
 
 async function getPassengerRides(passengerId) {
@@ -154,6 +223,28 @@ async function driverTransition(user, rideId, fromStatus, toStatus) {
 // Shared helpers
 // ---------------------------------------------------------------------
 
+/**
+ * Ride details for the details page (passenger or assigned driver only).
+ * Includes the assigned driver's simulated location when present.
+ */
+async function getRideDetails(user, rideId) {
+  const ride = await requireRide(rideId);
+
+  const isOwnerPassenger = ride.passenger_id === user.id && user.role === ROLES.PASSENGER;
+  const isAssignedDriver = ride.driver_id === user.id && user.role === ROLES.DRIVER;
+
+  if (!isOwnerPassenger && !isAssignedDriver) {
+    throw new AppError(403, 'You do not have permission to view this ride.');
+  }
+
+  let driverLocation = null;
+  if (ride.driver_id) {
+    driverLocation = await driverService.getDriverLocation(ride.driver_id);
+  }
+
+  return { ride, driverLocation };
+}
+
 async function requireRide(rideId) {
   const id = Number(rideId);
   if (!Number.isInteger(id) || id <= 0) {
@@ -186,4 +277,5 @@ module.exports = {
   startRide,
   completeRide,
   cancelByDriver,
+  getRideDetails,
 };

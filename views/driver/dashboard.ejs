@@ -13,42 +13,63 @@
     <div class="stat-value"><%= availableRides.length %></div>
     <div class="stat-label">Available requests</div>
   </div>
+  <% if (myLocation) { %>
+    <div class="stat-card">
+      <div class="stat-value" style="font-size: 16px;"><%= myLocation.area %></div>
+      <div class="stat-label">Your location</div>
+    </div>
+  <% } %>
 </div>
 
-<% if (activeRide) { %>
-  <div class="card">
-    <h2>Current ride #<%= activeRide.id %></h2>
-    <table class="table">
-      <tbody>
-        <tr><th>Passenger</th><td><%= activeRide.passenger_name %></td></tr>
-        <tr><th>From</th><td><%= activeRide.origin %></td></tr>
-        <tr><th>To</th><td><%= activeRide.destination %></td></tr>
-        <tr>
-          <th>Status</th>
-          <td><%- include('../partials/status-badge', { status: activeRide.status }) %></td>
-        </tr>
-      </tbody>
-    </table>
+<div class="ride-layout">
+  <% if (activeRide) { %>
+    <div class="card">
+      <h2>Current ride #<%= activeRide.id %></h2>
+      <table class="table">
+        <tbody>
+          <tr><th>Passenger</th><td><%= activeRide.passenger_name %></td></tr>
+          <tr><th>Pickup</th><td><%= activeRide.origin %></td></tr>
+          <tr><th>Destination</th><td><%= activeRide.destination %></td></tr>
+          <tr>
+            <th>Status</th>
+            <td><%- include('../partials/status-badge', { status: activeRide.status }) %></td>
+          </tr>
+          <% if (activeRide.distance_km != null) { %>
+            <tr><th>Distance</th><td><%= activeRide.distance_km %> km</td></tr>
+            <tr><th>Estimated time</th><td><%= activeRide.estimated_duration %> min</td></tr>
+            <tr><th>Estimated price</th><td><strong><%= activeRide.estimated_price.toLocaleString() %> تومان</strong></td></tr>
+          <% } %>
+        </tbody>
+      </table>
 
-    <div class="btn-row" style="margin-top: 12px;">
-      <% if (activeRide.status === 'ACCEPTED') { %>
-        <form method="POST" action="/driver/rides/<%= activeRide.id %>/start">
-          <button type="submit" class="btn btn-primary">Start Ride</button>
-        </form>
-        <form method="POST" action="/driver/rides/<%= activeRide.id %>/cancel">
-          <button type="submit" class="btn btn-danger"
-                  data-confirm="Cancel this ride?">Cancel</button>
-        </form>
-      <% } else if (activeRide.status === 'STARTED') { %>
-        <form method="POST" action="/driver/rides/<%= activeRide.id %>/complete">
-          <button type="submit" class="btn btn-primary">Complete Ride</button>
-        </form>
-      <% } %>
+      <div class="btn-row" style="margin-top: 12px;">
+        <% if (activeRide.status === 'ACCEPTED') { %>
+          <form method="POST" action="/driver/rides/<%= activeRide.id %>/start">
+            <button type="submit" class="btn btn-primary">Start Ride</button>
+          </form>
+          <form method="POST" action="/driver/rides/<%= activeRide.id %>/cancel">
+            <button type="submit" class="btn btn-danger"
+                    data-confirm="Cancel this ride?">Cancel</button>
+          </form>
+        <% } else if (activeRide.status === 'STARTED') { %>
+          <form method="POST" action="/driver/rides/<%= activeRide.id %>/complete">
+            <button type="submit" class="btn btn-primary">Complete Ride</button>
+          </form>
+        <% } %>
+        <a class="btn" href="/driver/rides/<%= activeRide.id %>">Open ride map</a>
+      </div>
     </div>
+  <% } else { %>
+    <div class="card">
+      <div class="empty-state">You have no active ride. Accept one of the requests below.</div>
+    </div>
+  <% } %>
+
+  <div class="card map-card">
+    <h2>Map</h2>
+    <div id="ride-map" class="map-box"></div>
   </div>
-<% } else { %>
-  <div class="empty-state">You have no active ride. Accept one of the requests below.</div>
-<% } %>
+</div>
 
 <div class="card">
   <h2>Available ride requests</h2>
@@ -63,6 +84,7 @@
           <th>Passenger</th>
           <th>From</th>
           <th>To</th>
+          <th>Distance</th>
           <th>Requested at</th>
           <th>Action</th>
         </tr>
@@ -74,6 +96,7 @@
             <td><%= ride.passenger_name %></td>
             <td><%= ride.origin %></td>
             <td><%= ride.destination %></td>
+            <td><%= ride.distance_km != null ? ride.distance_km + ' km' : '-' %></td>
             <td><%= helpers.formatDateTime(ride.created_at) %></td>
             <td>
               <form method="POST" action="/driver/rides/<%= ride.id %>/accept">
@@ -86,5 +109,25 @@
     </table>
   <% } %>
 </div>
+
+<script type="application/json" id="ride-map-data">
+  <%- JSON.stringify({
+        mapId: 'ride-map',
+        rideId: activeRide ? activeRide.id : null,
+        poll: false,
+        originLat: activeRide ? activeRide.origin_lat : null,
+        originLng: activeRide ? activeRide.origin_lng : null,
+        destinationLat: activeRide ? activeRide.destination_lat : null,
+        destinationLng: activeRide ? activeRide.destination_lng : null,
+        driverLat: myLocation ? myLocation.lat : null,
+        driverLng: myLocation ? myLocation.lng : null,
+        driverName: null
+      }) %>
+</script>
+
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/js/map-utils.js"></script>
+<script src="/js/ride-view.js"></script>
 
 <%- include('../partials/footer') %>

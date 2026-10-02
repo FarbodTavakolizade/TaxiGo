@@ -17,6 +17,8 @@
         <th>From</th>
         <th>To</th>
         <th>Driver</th>
+        <th>Distance</th>
+        <th>Price</th>
         <th>Status</th>
         <th>Created</th>
         <th>Actions</th>
@@ -29,19 +31,22 @@
           <td><%= ride.origin %></td>
           <td><%= ride.destination %></td>
           <td><%= ride.driver_name || '-' %></td>
+          <td><%= ride.distance_km != null ? ride.distance_km + ' km' : '-' %></td>
+          <td><%= ride.estimated_price != null ? ride.estimated_price.toLocaleString() + ' تومان' : '-' %></td>
           <td><%- include('../partials/status-badge', { status: ride.status }) %></td>
           <td><%= helpers.formatDateTime(ride.created_at) %></td>
           <td>
-            <% if (ride.status === 'REQUESTED' || ride.status === 'ACCEPTED') { %>
-              <form method="POST" action="/passenger/rides/<%= ride.id %>/cancel">
-                <button type="submit" class="btn btn-danger btn-small"
-                        data-confirm="Cancel this ride?">
-                  Cancel
-                </button>
-              </form>
-            <% } else { %>
-              <span class="muted">-</span>
-            <% } %>
+            <div class="btn-row">
+              <a class="btn btn-small" href="/passenger/rides/<%= ride.id %>">Details</a>
+              <% if (ride.status === 'REQUESTED' || ride.status === 'ACCEPTED') { %>
+                <form method="POST" action="/passenger/rides/<%= ride.id %>/cancel">
+                  <button type="submit" class="btn btn-danger btn-small"
+                          data-confirm="Cancel this ride?">
+                    Cancel
+                  </button>
+                </form>
+              <% } %>
+            </div>
           </td>
         </tr>
       <% }); %>

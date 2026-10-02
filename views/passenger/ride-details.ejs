@@ -1,0 +1,72 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+  <h1>Ride #<%= ride.id %></h1>
+  <span id="ride-status-badge" class="badge badge-<%= ride.status %>"><%= ride.status %></span>
+</div>
+
+<div class="ride-layout">
+  <div class="card">
+    <h2>Trip details</h2>
+    <table class="table">
+      <tbody>
+        <tr><th>Origin</th><td><%= ride.origin %></td></tr>
+        <tr><th>Destination</th><td><%= ride.destination %></td></tr>
+        <tr>
+          <th>Driver</th>
+          <td>
+            <% if (ride.driver_name) { %>
+              <span id="ride-driver-info"><%= ride.driver_name %></span>
+              <% if (driverLocation) { %>
+                <span class="muted">(near <%= driverLocation.area %>)</span>
+              <% } %>
+            <% } else { %>
+              <span id="ride-driver-info" class="muted">Waiting for a driver</span>
+            <% } %>
+          </td>
+        </tr>
+        <tr><th>Distance</th><td><%= ride.distance_km != null ? ride.distance_km + ' km' : '-' %></td></tr>
+        <tr><th>Estimated time</th><td><%= ride.estimated_duration != null ? ride.estimated_duration + ' min' : '-' %></td></tr>
+        <tr><th>Estimated price</th><td><strong><%= ride.estimated_price != null ? ride.estimated_price.toLocaleString() + ' تومان' : '-' %></strong></td></tr>
+        <tr><th>Requested at</th><td><%= helpers.formatDateTime(ride.created_at) %></td></tr>
+        <% if (ride.accepted_at) { %><tr><th>Accepted at</th><td><%= helpers.formatDateTime(ride.accepted_at) %></td></tr><% } %>
+        <% if (ride.started_at) { %><tr><th>Started at</th><td><%= helpers.formatDateTime(ride.started_at) %></td></tr><% } %>
+        <% if (ride.completed_at) { %><tr><th>Completed at</th><td><%= helpers.formatDateTime(ride.completed_at) %></td></tr><% } %>
+      </tbody>
+    </table>
+
+    <div class="btn-row" style="margin-top: 12px;">
+      <% if (ride.status === 'REQUESTED' || ride.status === 'ACCEPTED') { %>
+        <form method="POST" action="/passenger/rides/<%= ride.id %>/cancel">
+          <button type="submit" class="btn btn-danger" data-confirm="Cancel this ride?">Cancel Ride</button>
+        </form>
+      <% } %>
+      <a class="btn" href="/passenger/rides">Back to my rides</a>
+    </div>
+  </div>
+
+  <div class="card map-card">
+    <h2>Route</h2>
+    <div id="ride-map" class="map-box"></div>
+  </div>
+</div>
+
+<script type="application/json" id="ride-map-data">
+  <%- JSON.stringify({
+        mapId: 'ride-map',
+        rideId: ride.id,
+        poll: ['REQUESTED', 'ACCEPTED', 'STARTED'].includes(ride.status),
+        originLat: ride.origin_lat, originLng: ride.origin_lng,
+        destinationLat: ride.destination_lat, destinationLng: ride.destination_lng,
+        driverLat: driverLocation ? driverLocation.lat : null,
+        driverLng: driverLocation ? driverLocation.lng : null,
+        driverName: ride.driver_name || null
+      }) %>
+</script>
+
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/js/map-utils.js"></script>
+<script src="/js/ride-view.js"></script>
+
+<%- include('../partials/footer') %>

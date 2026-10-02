@@ -22,8 +22,9 @@ function showNewRideForm(req, res) {
 async function createRide(req, res) {
   const { origin, destination } = req.body;
 
+  let result;
   try {
-    await rideService.requestRide(req.session.user, { origin, destination });
+    result = await rideService.requestRide(req.session.user, req.body);
   } catch (err) {
     // Keep what was typed so the form can be shown again.
     if (err.name === 'AppError') {
@@ -36,8 +37,33 @@ async function createRide(req, res) {
     throw err;
   }
 
-  req.flash('success', 'Your taxi request has been created.');
-  res.redirect('/passenger/rides');
+  if (result.assignment) {
+    req.flash(
+      'success',
+      `Taxi requested. ${result.assignment.driver.name} is on the way ` +
+      `(${result.assignment.driver.area}, ${result.assignment.distanceKm} km away).`
+    );
+  } else if (result.ride.status === 'REQUESTED') {
+    req.flash('success', 'Your taxi request has been created.');
+  } else {
+    req.flash('success', 'Your taxi request has been created. Waiting for a driver.');
+  }
+
+  res.redirect(`/passenger/rides/${result.ride.id}`);
+}
+
+/** Ride details page with the map (origin, destination, driver). */
+async function showRideDetails(req, res) {
+  const { ride, driverLocation } = await rideService.getRideDetails(
+    req.session.user,
+    req.params.id
+  );
+
+  res.render('passenger/ride-details', {
+    title: `Ride #${ride.id}`,
+    ride,
+    driverLocation,
+  });
 }
 
 async function cancelRide(req, res) {
@@ -46,4 +72,11 @@ async function cancelRide(req, res) {
   res.redirect('/passenger/rides');
 }
 
-module.exports = { dashboard, showRides, showNewRideForm, createRide, cancelRide };
+module.exports = {
+  dashboard,
+  showRides,
+  showNewRideForm,
+  createRide,
+  showRideDetails,
+  cancelRide,
+};

@@ -10,8 +10,8 @@ function notFoundHandler(req, res, next) {
  * - AppError: expected problem, safe message is shown to the user.
  * - Other errors: unexpected problem, details are logged but NOT shown.
  *
- * On POST requests the user is redirected back to the previous page with
- * an error message (flash). On GET requests an error page is rendered.
+ * /api/ paths always receive JSON. Normal pages redirect back with a flash
+ * message for POST requests and render an error page for GET requests.
  */
 function errorHandler(err, req, res, next) {
   const status = err instanceof AppError ? err.statusCode : 500;
@@ -22,6 +22,11 @@ function errorHandler(err, req, res, next) {
 
   const message =
     status >= 500 ? 'Something went wrong. Please try again.' : err.message;
+
+  // JSON API: the map code reads errors from the response body.
+  if (req.path.startsWith('/api/')) {
+    return res.status(status).json({ error: message });
+  }
 
   if (req.method === 'POST') {
     req.flash('error', message);

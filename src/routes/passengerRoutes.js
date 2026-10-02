@@ -15,6 +15,7 @@ router.get('/passenger/dashboard', passengerController.dashboard);
 router.get('/passenger/rides', passengerController.showRides);
 router.get('/passenger/rides/new', passengerController.showNewRideForm);
 router.post('/passenger/rides', passengerController.createRide);
+router.get('/passenger/rides/:id', passengerController.showRideDetails);
 router.post('/passenger/rides/:id/cancel', passengerController.cancelRide);
 
 module.exports = router;

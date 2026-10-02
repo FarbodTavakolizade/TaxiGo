@@ -8,6 +8,8 @@ const RIDE_SELECT = `
   SELECT r.id, r.passenger_id, r.driver_id, r.origin, r.destination,
          r.status, r.created_at, r.accepted_at, r.started_at,
          r.completed_at, r.cancelled_at,
+         r.origin_lat, r.origin_lng, r.destination_lat, r.destination_lng,
+         r.distance_km, r.estimated_duration, r.estimated_price,
          p.name AS passenger_name,
          d.name AS driver_name
   FROM rides r
@@ -15,12 +17,41 @@ const RIDE_SELECT = `
   LEFT JOIN users d ON d.id = r.driver_id
 `;
 
-async function createRide({ passengerId, origin, destination }) {
+/**
+ * Inserts a new ride.
+ * Coordinates and the route estimates are optional (a ride can still be
+ * requested as plain text). When driverId is given the ride is created
+ * directly as ACCEPTED for that driver - used by the automatic
+ * nearest-driver assignment.
+ */
+async function createRide({
+  passengerId,
+  origin,
+  destination,
+  originLat = null,
+  originLng = null,
+  destinationLat = null,
+  destinationLng = null,
+  distanceKm = null,
+  estimatedDuration = null,
+  estimatedPrice = null,
+  driverId = null,
+}) {
+  const status = driverId ? 'ACCEPTED' : 'REQUESTED';
+
   const result = await pool.query(
-    `INSERT INTO rides (passenger_id, origin, destination)
-     VALUES ($1, $2, $3)
+    `INSERT INTO rides
+       (passenger_id, driver_id, origin, destination, status,
+        origin_lat, origin_lng, destination_lat, destination_lng,
+        distance_km, estimated_duration, estimated_price, accepted_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+             CASE WHEN $2::int IS NULL THEN NULL ELSE NOW() END)
      RETURNING id`,
-    [passengerId, origin, destination]
+    [
+      passengerId, driverId, origin, destination, status,
+      originLat, originLng, destinationLat, destinationLng,
+      distanceKm, estimatedDuration, estimatedPrice,
+    ]
   );
   return findById(result.rows[0].id);
 }

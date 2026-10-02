@@ -1,12 +1,30 @@
 const rideService = require('../services/rideService');
+const driverService = require('../services/driverService');
 
 async function dashboard(req, res) {
   const data = await rideService.getDriverDashboard(req.session.user.id);
+  const location = await driverService.getDriverLocation(req.session.user.id);
+
   res.render('driver/dashboard', {
     title: 'Driver Dashboard',
     availableRides: data.availableRides,
     activeRide: data.activeRide,
     completedRides: data.completedRides,
+    myLocation: location,
+  });
+}
+
+/** Ride details page for the assigned driver (map with route). */
+async function showRideDetails(req, res) {
+  const { ride, driverLocation } = await rideService.getRideDetails(
+    req.session.user,
+    req.params.id
+  );
+
+  res.render('driver/ride-details', {
+    title: `Ride #${ride.id}`,
+    ride,
+    driverLocation,
   });
 }
 
@@ -39,4 +57,12 @@ async function cancelRide(req, res) {
   res.redirect('/driver/dashboard');
 }
 
-module.exports = { dashboard, showRides, acceptRide, startRide, completeRide, cancelRide };
+module.exports = {
+  dashboard,
+  showRides,
+  showRideDetails,
+  acceptRide,
+  startRide,
+  completeRide,
+  cancelRide,
+};

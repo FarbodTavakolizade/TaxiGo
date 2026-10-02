@@ -27,10 +27,10 @@ afterEach(() => {
 });
 
 describe('passenger creates a ride', () => {
-  test('creates a ride with trimmed origin and destination', async () => {
+  test('creates a plain text ride (no map) with trimmed origin and destination', async () => {
     rideRepository.createRide.mockResolvedValue(makeRide());
 
-    const ride = await rideService.requestRide(passenger, {
+    const result = await rideService.requestRide(passenger, {
       origin: '  Azadi Square ',
       destination: ' Airport ',
     });
@@ -40,7 +40,8 @@ describe('passenger creates a ride', () => {
       origin: 'Azadi Square',
       destination: 'Airport',
     });
-    expect(ride.status).toBe(RIDE_STATUS.REQUESTED);
+    expect(result.ride.status).toBe(RIDE_STATUS.REQUESTED);
+    expect(result.assignment).toBeNull();
   });
 
   test('rejects an empty origin', async () => {

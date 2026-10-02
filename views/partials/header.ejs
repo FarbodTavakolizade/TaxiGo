@@ -9,7 +9,10 @@
 <body>
   <header class="navbar">
     <div class="container nav-inner">
-      <a class="brand" href="/">Taxi System</a>
+      <a class="brand" href="/">
+        <span class="brand-mark">🚕</span>
+        TaxiGo
+      </a>
       <nav class="nav-links">
         <% var isActive = function (path) { return currentPath === path ? 'active' : ''; }; %>
         <% if (!currentUser) { %>

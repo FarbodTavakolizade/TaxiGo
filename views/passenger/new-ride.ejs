@@ -1,29 +1,78 @@
 <%- include('../partials/header') %>
 
-<div class="card card-narrow">
+<div class="page-header">
   <h1>Request a Taxi</h1>
-  <p class="muted">Enter where you are and where you want to go.</p>
+  <span class="muted">Pick two points on the Tehran map</span>
+</div>
 
-  <% if (typeof error !== 'undefined' && error) { %>
-    <div class="flash flash-error"><%= error %></div>
-  <% } %>
+<% if (typeof error !== 'undefined' && error) { %>
+  <div class="flash flash-error"><%= error %></div>
+<% } %>
 
-  <form method="POST" action="/passenger/rides">
+<div class="request-layout">
+  <!-- ============ Map ============ -->
+  <div class="card map-card">
+    <div class="map-toolbar">
+      <button type="button" id="mode-origin" class="btn btn-chip active">📍 Select Origin</button>
+      <button type="button" id="mode-destination" class="btn btn-chip">🏁 Select Destination</button>
+      <button type="button" id="reset-selection" class="btn btn-chip btn-chip-muted">Reset</button>
+    </div>
+    <p class="form-hint" id="map-hint">Click the map to set the origin.</p>
+    <div id="request-map" class="map-box"></div>
+    <div class="flash flash-error" id="map-error" hidden></div>
+  </div>
+
+  <!-- ============ Form ============ -->
+  <form class="card form-card" method="POST" action="/passenger/rides" id="ride-form">
+    <h2>Trip details</h2>
+
     <div class="form-group">
       <label for="origin">Origin</label>
       <input type="text" id="origin" name="origin" required maxlength="200"
              placeholder="e.g. Azadi Square" value="<%= form.origin || '' %>" />
+      <p class="form-hint">Selected coordinates: <span id="origin-coords"></span></p>
     </div>
+
     <div class="form-group">
       <label for="destination">Destination</label>
       <input type="text" id="destination" name="destination" required maxlength="200"
-             placeholder="e.g. Mehrabad Airport" value="<%= form.destination || '' %>" />
+             placeholder="e.g. Tajrish Square" value="<%= form.destination || '' %>" />
+      <p class="form-hint">Selected coordinates: <span id="destination-coords"></span></p>
     </div>
+
+    <!-- Hidden fields carry the map selection to the server. -->
+    <input type="hidden" id="form-origin-lat" name="originLat" value="" />
+    <input type="hidden" id="form-origin-lng" name="originLng" value="" />
+    <input type="hidden" id="form-destination-lat" name="destinationLat" value="" />
+    <input type="hidden" id="form-destination-lng" name="destinationLng" value="" />
+
+    <div class="estimate-box" id="estimate-box" hidden>
+      <div class="estimate-row">
+        <span>Distance</span><strong id="estimate-distance">-</strong>
+      </div>
+      <div class="estimate-row">
+        <span>Estimated time</span><strong id="estimate-duration">-</strong>
+      </div>
+      <div class="estimate-row">
+        <span>Estimated price</span><strong id="estimate-price">-</strong>
+      </div>
+    </div>
+
     <div class="btn-row">
-      <button type="submit" class="btn btn-primary">Request Taxi</button>
-      <a class="btn" href="/passenger/rides">Cancel</a>
+      <button type="button" class="btn btn-secondary" id="calculate-route">Calculate Route</button>
+      <button type="submit" class="btn btn-primary" id="request-taxi" disabled>Request Taxi 🚕</button>
     </div>
+
+    <p class="form-hint">
+      Tip: you can also type an address and request without the map
+      (a driver will accept it manually).
+    </p>
   </form>
 </div>
+
+<link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
+<script src="/vendor/leaflet/leaflet.js"></script>
+<script src="/js/map-utils.js"></script>
+<script src="/js/request-map.js"></script>
 
 <%- include('../partials/footer') %>

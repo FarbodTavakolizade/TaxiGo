@@ -16,6 +16,7 @@ app.set('views', path.join(__dirname, '..', 'views'));
 // ----- Global middleware -----
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json()); // JSON bodies for the map API
 
 app.use(
   session({
@@ -51,6 +52,7 @@ const authRoutes = require('./routes/authRoutes');
 const passengerRoutes = require('./routes/passengerRoutes');
 const driverRoutes = require('./routes/driverRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const apiRoutes = require('./routes/apiRoutes');
 
 // Small public entry point: send each visitor to the right place.
 app.get('/', (req, res) => {
@@ -65,6 +67,7 @@ app.use(authRoutes);
 app.use(passengerRoutes);
 app.use(driverRoutes);
 app.use(adminRoutes);
+app.use(apiRoutes);
 
 // Simple health check that also verifies the database connection.
 app.get('/health', async (req, res) => {

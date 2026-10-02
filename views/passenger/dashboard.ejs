@@ -31,6 +31,8 @@
           <th>From</th>
           <th>To</th>
           <th>Driver</th>
+          <th>Distance</th>
+          <th>Price</th>
           <th>Status</th>
           <th>Created</th>
         </tr>
@@ -38,10 +40,12 @@
       <tbody>
         <% recentRides.forEach(function (ride) { %>
           <tr>
-            <td><%= ride.id %></td>
+            <td><a href="/passenger/rides/<%= ride.id %>"><%= ride.id %></a></td>
             <td><%= ride.origin %></td>
             <td><%= ride.destination %></td>
             <td><%= ride.driver_name || '-' %></td>
+            <td><%= ride.distance_km != null ? ride.distance_km + ' km' : '-' %></td>
+            <td><%= ride.estimated_price != null ? ride.estimated_price.toLocaleString() + ' تومان' : '-' %></td>
             <td><%- include('../partials/status-badge', { status: ride.status }) %></td>
             <td><%= helpers.formatDateTime(ride.created_at) %></td>
           </tr>

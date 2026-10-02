@@ -13,6 +13,7 @@ router.use('/driver', requireAuth, requireRole(ROLES.DRIVER));
 
 router.get('/driver/dashboard', driverController.dashboard);
 router.get('/driver/rides', driverController.showRides);
+router.get('/driver/rides/:id', driverController.showRideDetails);
 
 router.post('/driver/rides/:id/accept', driverController.acceptRide);
 router.post('/driver/rides/:id/start', driverController.startRide);
