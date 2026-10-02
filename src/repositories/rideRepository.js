@@ -151,6 +151,29 @@ async function updateStatus(rideId, fromStatus, toStatus, { driverId = null } = 
   return findById(rideId);
 }
 
+/** All rides in the system, newest first (admin page). */
+async function findAll() {
+  const result = await pool.query(`${RIDE_SELECT} ORDER BY r.created_at DESC`);
+  return result.rows;
+}
+
+/** Ride statistics for the admin dashboard. */
+async function getStats() {
+  const result = await pool.query(
+    `SELECT
+       COUNT(*) AS total_rides,
+       COUNT(*) FILTER (WHERE status = 'COMPLETED') AS completed_rides,
+       COUNT(*) FILTER (WHERE status = 'CANCELLED') AS cancelled_rides
+     FROM rides`
+  );
+  const row = result.rows[0];
+  return {
+    totalRides: Number(row.total_rides),
+    completedRides: Number(row.completed_rides),
+    cancelledRides: Number(row.cancelled_rides),
+  };
+}
+
 module.exports = {
   createRide,
   findById,
@@ -163,4 +186,6 @@ module.exports = {
   countCompletedByDriver,
   assignToDriverIfRequested,
   updateStatus,
+  findAll,
+  getStats,
 };

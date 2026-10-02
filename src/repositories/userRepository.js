@@ -38,4 +38,43 @@ async function createUser({ name, email, passwordHash, role }) {
   return result.rows[0];
 }
 
-module.exports = { findByEmail, findById, createUser };
+/** All users for the admin page (never includes password hashes). */
+async function findAll() {
+  const result = await pool.query(
+    `SELECT id, name, email, role, is_active, created_at
+     FROM users
+     ORDER BY id`
+  );
+  return result.rows;
+}
+
+/** Activates or deactivates a user. Returns the updated user or null. */
+async function setActive(id, isActive) {
+  const result = await pool.query(
+    `UPDATE users
+     SET is_active = $1
+     WHERE id = $2
+     RETURNING id, name, email, role, is_active, created_at`,
+    [isActive, id]
+  );
+  return result.rows[0] || null;
+}
+
+/** User counts per role plus the total, for the admin dashboard. */
+async function getStats() {
+  const result = await pool.query(
+    `SELECT
+       COUNT(*) AS total_users,
+       COUNT(*) FILTER (WHERE role = 'DRIVER') AS total_drivers,
+       COUNT(*) FILTER (WHERE role = 'PASSENGER') AS total_passengers
+     FROM users`
+  );
+  const row = result.rows[0];
+  return {
+    totalUsers: Number(row.total_users),
+    totalDrivers: Number(row.total_drivers),
+    totalPassengers: Number(row.total_passengers),
+  };
+}
+
+module.exports = { findByEmail, findById, createUser, findAll, setActive, getStats };
