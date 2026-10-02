@@ -31,8 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---------- small DOM helpers ----------
   const el = (id) => document.getElementById(id);
-  const originText = el('origin-text');
-  const destinationText = el('destination-text');
+  const originText = el('origin');
+  const destinationText = el('destination');
   const estimateBox = el('estimate-box');
   const errorBox = el('map-error');
   const hint = el('map-hint');
@@ -149,6 +149,10 @@ document.addEventListener('DOMContentLoaded', () => {
       TaxiMap.fitToPoints(map, data.path);
       updateEstimateBox(data);
 
+      // The route is known now, so the form fields can be filled in and the
+      // "Request Taxi" button becomes usable.
+      updateSubmitState();
+
       if (data.usedFallback) {
         showError('The points are outside the simplified road graph, so the straight-line distance is used.');
       }
@@ -221,8 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
   el('calculate-route').addEventListener('click', calculateRoute);
 
   // Keep the hidden form fields in sync when the text fields are edited.
-  originText.addEventListener('input', updateSubmitState);
-  destinationText.addEventListener('input', updateSubmitState);
+  if (originText && destinationText) {
+    originText.addEventListener('input', updateSubmitState);
+    destinationText.addEventListener('input', updateSubmitState);
+  }
 
   setMode('origin');
   updateSubmitState();

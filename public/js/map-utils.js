@@ -25,6 +25,8 @@ const TaxiMap = (() => {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
+    // Exposed for debugging in the browser console.
+    window.taxiMap = map;
     return map;
   }
 

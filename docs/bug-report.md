@@ -187,3 +187,83 @@ which works. Standard PostgreSQL installations on port 5432 are unaffected.
   duplicates rows nor destroys the rides created during phase 1.
 - Leaflet is copied into `public/vendor/leaflet/` so the map library works
   without a CDN. Only the OpenStreetMap tile images need internet access.
+
+---
+
+## BUG-7: Driver markers never appeared on the request map
+
+- **Found in:** Phase 2 (browser verification of the request page)
+- **Severity:** High (the map's driver display did not work at all)
+- **Symptom:** The Tehran map loaded and tiles rendered, but no taxi markers
+  appeared, even though `GET /api/drivers` returned all four drivers when
+  called manually from the page console. No JavaScript error was shown to the
+  user; the page simply looked like it had no drivers.
+- **Steps to reproduce:**
+  1. Log in as a passenger and open `/passenger/rides/new`.
+  2. Wait for the map to load.
+  3. Observe that only the tile background appears (no driver markers).
+- **Root cause:** `public/js/request-map.js` looked up the text inputs with
+  the ids `origin-text` and `destination-text`, but the template in
+  `views/passenger/new-ride.ejs` defines those inputs as `id="origin"` and
+  `id="destination"`. The lookups returned `null`, and the first use
+  (`originText.addEventListener` further down, reached through the initial
+  `updateSubmitState()` call) threw a `TypeError`. That exception aborted the
+  rest of the `DOMContentLoaded` handler, so `loadDrivers()` at the end of the
+  handler never ran. Because the error happened inside a DOM event listener,
+  it did not surface as a visible message.
+- **Fix:** Corrected the element ids and made the input listeners defensive:
+
+  ```js
+  const originText = el('origin');
+  const destinationText = el('destination');
+  ...
+  if (originText && destinationText) {
+    originText.addEventListener('input', updateSubmitState);
+    destinationText.addEventListener('input', updateSubmitState);
+  }
+  ```
+- **Verification:** After the fix, four `🚕` driver markers render on the
+  request map, and clicking the map still sets both markers correctly.
+
+---
+
+## BUG-8: "Request Taxi" stayed disabled after calculating the route
+
+- **Found in:** Phase 2 (browser verification of the request flow)
+- **Severity:** High (the main map ordering flow could not be completed)
+- **Symptom:** After selecting both points and clicking "Calculate Route",
+  the distance, time and price were shown and the route polyline was drawn,
+  but the "Request Taxi" button remained greyed out, so the ride could not be
+  submitted.
+- **Steps to reproduce:**
+  1. Open `/passenger/rides/new`.
+  2. Click two points on the map.
+  3. Click "Calculate Route" (the estimates appear).
+  4. Observe that "Request Taxi" is still disabled.
+- **Root cause:** The button state and the hidden coordinate fields are
+  controlled by `updateSubmitState()`. The map click handlers and the reset
+  button called it, but `calculateRoute()` did not call it after a successful
+  response, so the state was never refreshed once the route existed.
+- **Fix:** Call `updateSubmitState()` right after a successful route
+  calculation:
+
+  ```js
+  selection.route = data;
+  TaxiMap.drawRoute(map, data.path, layerHolder);
+  TaxiMap.fitToPoints(map, data.path);
+  updateEstimateBox(data);
+  updateSubmitState();   // enables "Request Taxi" and fills the hidden fields
+  ```
+- **Verification:** After the fix, the button enables, the text fields are
+  filled from the selected points, and submitting the form creates the ride
+  with coordinates, distance, duration and price.
+
+---
+
+## Note on the browser-verification method
+
+Both BUG-7 and BUG-8 were invisible to the automated test suite (they are
+browser-side wiring problems) and were found only by driving the real page in
+a browser and checking the rendered DOM after each action. They are recorded
+here because the lesson is practical: unit tests over services are not enough
+for map/UI features; the actual page must be exercised before delivery.

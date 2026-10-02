@@ -105,6 +105,9 @@ These were executed in the browser/HTTP during development:
 | M23| Status polling                       | Keep an active ride details page open, complete it as driver | Badge updates to COMPLETED within a few seconds        | Pass   |
 | M24| Invalid coordinates via API          | POST /api/route with `originLat: "abc"`                      | HTTP 400 with JSON error message, no crash             | Pass   |
 | M25| Straight-line fallback               | Select two points far outside Tehran                         | Friendly message + straight-line distance used        | Pass   |
+| M26| Driver markers on request map        | Open /passenger/rides/new                                    | Four taxi markers appear for the demo drivers          | Pass (after BUG-7 fix) |
+| M27| Request button state                 | Calculate a route, then look at the button                   | "Request Taxi" becomes enabled and the hidden coordinate fields are filled | Pass (after BUG-8 fix) |
+| M28| Unauthenticated API access           | Call /api/drivers, /api/route or /api/rides/1 without a session | Redirected to /login; no data returned              | Pass   |
 
 ## 6. Notes
 
