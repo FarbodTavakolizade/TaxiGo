@@ -1,0 +1,52 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+  <h1>My Rides</h1>
+  <a class="btn btn-primary" href="/passenger/rides/new">Request Taxi</a>
+</div>
+
+<% if (rides.length === 0) { %>
+  <div class="empty-state">
+    You have no rides yet. Click "Request Taxi" to create your first request.
+  </div>
+<% } else { %>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Driver</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rides.forEach(function (ride) { %>
+        <tr>
+          <td><%= ride.id %></td>
+          <td><%= ride.origin %></td>
+          <td><%= ride.destination %></td>
+          <td><%= ride.driver_name || '-' %></td>
+          <td><%- include('../partials/status-badge', { status: ride.status }) %></td>
+          <td><%= helpers.formatDateTime(ride.created_at) %></td>
+          <td>
+            <% if (ride.status === 'REQUESTED' || ride.status === 'ACCEPTED') { %>
+              <form method="POST" action="/passenger/rides/<%= ride.id %>/cancel">
+                <button type="submit" class="btn btn-danger btn-small"
+                        data-confirm="Cancel this ride?">
+                  Cancel
+                </button>
+              </form>
+            <% } else { %>
+              <span class="muted">-</span>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>

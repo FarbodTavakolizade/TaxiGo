@@ -1,0 +1,56 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+  <h1>Welcome, <%= currentUser.name %></h1>
+  <a class="btn btn-primary" href="/passenger/rides/new">Request Taxi</a>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value"><%= currentRides %></div>
+    <div class="stat-label">Current rides</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value"><%= completedRides %></div>
+    <div class="stat-label">Completed rides</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Recent rides</h2>
+
+  <% if (recentRides.length === 0) { %>
+    <div class="empty-state">
+      You have no rides yet. Click "Request Taxi" to create your first request.
+    </div>
+  <% } else { %>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Driver</th>
+          <th>Status</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% recentRides.forEach(function (ride) { %>
+          <tr>
+            <td><%= ride.id %></td>
+            <td><%= ride.origin %></td>
+            <td><%= ride.destination %></td>
+            <td><%= ride.driver_name || '-' %></td>
+            <td><%- include('../partials/status-badge', { status: ride.status }) %></td>
+            <td><%= helpers.formatDateTime(ride.created_at) %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+
+  <p><a href="/passenger/rides">See all my rides</a></p>
+</div>
+
+<%- include('../partials/footer') %>

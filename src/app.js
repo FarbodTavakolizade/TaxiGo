@@ -47,6 +47,7 @@ app.use((req, res, next) => {
 
 // ----- Routes -----
 const authRoutes = require('./routes/authRoutes');
+const passengerRoutes = require('./routes/passengerRoutes');
 
 // Small public entry point: send each visitor to the right place.
 app.get('/', (req, res) => {
@@ -58,6 +59,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(authRoutes);
+app.use(passengerRoutes);
 
 // Simple health check that also verifies the database connection.
 app.get('/health', async (req, res) => {
