@@ -6,6 +6,11 @@ A small web-based taxi request system built as a university project. Passengers
 request rides, drivers accept and complete them, and an administrator can view
 statistics and deactivate users.
 
+The system includes an **interactive Tehran map** (Leaflet + OpenStreetMap),
+a **Dijkstra routing algorithm** on a simplified road graph, a simple
+**price and duration estimation**, and **automatic nearest-driver
+assignment**.
+
 The application is intentionally simple: server-rendered pages, a small
 layered architecture, and a minimal dependency list.
 
@@ -16,14 +21,19 @@ layered architecture, and a minimal dependency list.
 **Passenger**
 
 - Register and log in
-- Create a taxi request with a text origin and destination
+- **Select origin and destination on an interactive Tehran map**
+- **Calculate the shortest route (Dijkstra) and see distance, estimated
+  duration and estimated price before requesting**
+- Request a taxi; the **nearest available driver is assigned automatically**
 - See all personal ride requests and their current status
+- **Ride details page with a map** (origin, destination, assigned driver and route)
 - Cancel a ride while it is still REQUESTED or ACCEPTED
 - Dashboard with the number of current and completed rides
 
 **Driver**
 
 - Log in
+- **See the assigned ride on a map** (own location, pickup, destination, route)
 - See all available ride requests
 - Accept a request
 - Start the accepted ride
@@ -37,7 +47,7 @@ layered architecture, and a minimal dependency list.
 - See system statistics (users, drivers, passengers, rides, completed, cancelled)
 - See all users
 - Deactivate / activate users
-- See all rides in the system
+- See all rides in the system, including distance and price
 
 **General**
 
@@ -47,6 +57,7 @@ layered architecture, and a minimal dependency list.
 - Server-side validation with friendly error messages
 - Centralized error handling (no stack traces shown to users)
 - Ride status workflow strictly limited to the allowed transitions
+- Green/white taxi-app interface (plain CSS3, responsive, no frameworks)
 
 ---
 
@@ -57,10 +68,12 @@ layered architecture, and a minimal dependency list.
 - PostgreSQL (driver: `pg`)
 - EJS server-side templates
 - HTML5, CSS3, Vanilla JavaScript
+- **Leaflet + OpenStreetMap** (served locally, free, no API key)
 - express-session, bcrypt, dotenv
 - Jest (unit tests)
 
-No ORM, no frontend framework, no Docker, no external APIs.
+No ORM, no frontend framework, no Docker, no external APIs beyond the free
+OpenStreetMap tiles.
 
 ---
 
@@ -69,6 +82,8 @@ No ORM, no frontend framework, no Docker, no external APIs.
 - Node.js 18 or newer (developed with Node 24)
 - npm
 - PostgreSQL 14 or newer (developed with PostgreSQL 18)
+- Internet access for the OpenStreetMap map tiles (the app itself runs
+  offline; only the map background images need the network)
 
 ---
 
@@ -95,7 +110,7 @@ project-local PostgreSQL instance.
 
 ## Database setup
 
-Create the tables and demo data:
+For a **new** installation, create the tables and demo data:
 
 ```
 npm run db:setup
@@ -103,16 +118,28 @@ npm run db:setup
 
 This runs `database/schema.sql` (tables and indexes) followed by
 `database/seed.sql` (demo accounts and example rides). The script drops and
-recreates both tables, so it can be executed repeatedly.
+recreates the tables, so it can be executed repeatedly.
+
+For an **existing** database from the first phase, apply the map/price
+extension instead – it keeps all data:
+
+```
+npm run db:migrate
+```
+
+The migrations in `database/migrations/` are idempotent, so running them
+again is safe.
 
 ### Demo accounts
 
-| Role      | Email                  | Password     |
-|-----------|------------------------|--------------|
-| Admin     | admin@taxi.local       | admin123     |
-| Driver    | driver@taxi.local      | driver123     |
-| Driver    | driver2@taxi.local     | driver123     |
-| Passenger | passenger@taxi.local   | passenger123 |
+| Role      | Email                  | Password     | Simulated location |
+|-----------|------------------------|--------------|--------------------|
+| Admin     | admin@taxi.local       | admin123     | -                  |
+| Driver    | driver@taxi.local      | driver123    | Vanak              |
+| Driver    | driver2@taxi.local     | driver123    | Tajrish            |
+| Driver    | driver3@taxi.local     | driver123    | Azadi              |
+| Driver    | driver4@taxi.local     | driver123    | Sadeghieh          |
+| Passenger | passenger@taxi.local   | passenger123 | -                  |
 
 ---
 
@@ -172,35 +199,50 @@ university_project/
 ├── src/
 │   ├── app.js                 # Express application (middleware + routes)
 │   ├── server.js              # Entry point, starts the server
-│   ├── config.js              # Reads configuration from .env
+│   ├── config.js              # .env values + pricing and routing constants
 │   ├── constants.js           # Roles, ride statuses, allowed transitions
 │   ├── errors.js              # AppError class
 │   │
-│   ├── routes/                # URL definitions per role
+│   ├── data/
+│   │   └── tehranGraph.js     # Simplified Tehran road graph (nodes + edges)
+│   │
+│   ├── routes/                # URL definitions per role + JSON API
 │   ├── controllers/           # Handle request/response, call services
-│   ├── services/              # Business rules
+│   ├── services/
+│   │   ├── authService.js     # Registration and login rules
+│   │   ├── rideService.js     # Ride workflow + map requests + assignment
+│   │   ├── routingService.js  # Dijkstra shortest path, nearest node, fallback
+│   │   ├── pricingService.js  # Price and duration estimation
+│   │   ├── driverService.js   # Driver locations + nearest driver selection
+│   │   └── adminService.js    # Statistics and user management
 │   ├── repositories/          # SQL queries (parameterized)
 │   ├── middleware/            # Authentication, error handling
-│   ├── utils/                 # Validators, formatters
-│   └── db/                    # Connection pool, setup script
+│   ├── utils/                 # Validators, formatters, geo (Haversine)
+│   └── db/                    # Connection pool, setup + migration scripts
 │
 ├── views/                     # EJS templates
 │   ├── partials/              # Header, footer, status badge
 │   ├── auth/                  # Login, register
-│   ├── passenger/             # Passenger pages
-│   ├── driver/                # Driver pages
+│   ├── passenger/             # Dashboard, rides, new ride (map), ride details
+│   ├── driver/                # Dashboard (map), rides, ride details (map)
 │   ├── admin/                 # Admin pages
 │   └── errors/                # Error page
 │
 ├── public/
-│   ├── css/style.css          # Stylesheet
-│   └── js/main.js             # Small Vanilla JavaScript helpers
+│   ├── css/style.css          # Green/white taxi-app stylesheet
+│   ├── js/
+│   │   ├── main.js            # Confirm dialogs
+│   │   ├── map-utils.js       # Shared Leaflet helpers
+│   │   ├── request-map.js     # Origin/destination selection + route button
+│   │   └── ride-view.js       # Read-only ride map + status polling
+│   └── vendor/leaflet/        # Leaflet library (served locally)
 │
-├── tests/                     # Jest unit tests
+├── tests/                     # Jest unit tests (7 suites)
 │
 ├── database/
-│   ├── schema.sql             # Table definitions
-│   ├── seed.sql               # Demo accounts and example rides
+│   ├── schema.sql             # Table definitions (fresh install)
+│   ├── seed.sql               # Demo accounts, driver locations, rides
+│   ├── migrations/            # Idempotent migrations for existing databases
 │   └── README.md              # Database setup notes
 │
 ├── docs/                      # University project documentation
@@ -209,6 +251,7 @@ university_project/
 │   ├── use-cases.md
 │   ├── architecture.md
 │   ├── database.md
+│   ├── routing.md             # Map, Dijkstra, pricing, driver assignment
 │   ├── testing.md
 │   ├── bug-report.md
 │   └── code-review.md
@@ -220,25 +263,60 @@ university_project/
 
 ---
 
+## Pricing and routing configuration
+
+Both live in `src/config.js`, in a single place:
+
+| Constant          | Default | Meaning                                  |
+|-------------------|---------|------------------------------------------|
+| BASE_FARE         | 50000   | Fixed starting amount (Toman)            |
+| PRICE_PER_KM      | 10000   | Cost per kilometer (Toman)               |
+| ROUND_TO          | 1000    | Round the final price to this step       |
+| AVERAGE_SPEED_KMH | 30      | Used to estimate the travel time         |
+| MAX_SNAP_DISTANCE_KM | 20   | Beyond this, use straight-line fallback  |
+
+```
+price    = BASE_FARE + distanceKm × PRICE_PER_KM
+duration = distanceKm / AVERAGE_SPEED_KMH   (minutes)
+```
+
+See `docs/routing.md` for the routing algorithm, the map details and the
+driver assignment.
+
+---
+
 ## Demo walkthrough
 
-A complete demonstration of the system (three browser windows or three
+A complete demonstration of the system (three browser windows, or three
 incognito tabs):
 
-1. **Passenger** logs in as `passenger@taxi.local` → *Request Taxi* → enter an
-   origin and a destination → submit. The ride appears with the REQUESTED
-   badge. (Optional: cancel a second request to show cancellation.)
-2. **Driver** logs in as `driver@taxi.local` → the request is listed under
-   *Available ride requests* → **Accept** → the ride becomes the active ride
-   (ACCEPTED) → **Start Ride** (STARTED) → **Complete Ride** (COMPLETED).
-3. **Passenger** refreshes *My Rides* → status badge shows COMPLETED, and the
-   dashboard counters update.
-4. **Admin** logs in as `admin@taxi.local` → dashboard shows the updated
-   statistics → *Users* lets the admin deactivate a user (a deactivated user
-   can no longer log in) → *Rides* shows every ride in the system.
+1. **Passenger** logs in as `passenger@taxi.local` → *Request Taxi*.
+   On the Tehran map, click a point for the origin and another for the
+   destination (markers A and B appear). The available drivers are shown as
+   small taxi markers.
+2. Click **Calculate Route** → the shortest path (Dijkstra) is drawn as a
+   green line, and Distance / Estimated time / Estimated price appear.
+   Optionally click **Reset** to show what happens with a new selection.
+3. Click **Request Taxi** → the nearest available driver is assigned
+   automatically, the page shows the ride details with the driver marker,
+   and the status is ACCEPTED.
+4. **Driver** logs in as the assigned driver (`driver3@taxi.local` for a
+   pickup near Azadi) → dashboard shows the current ride on a map with the
+   route to the passenger → **Start Ride** → **Complete Ride**.
+5. **Passenger** refreshes the ride details page → status badge shows
+   COMPLETED next to the map (it also updates by itself every few seconds
+   while the ride is active).
+6. **Admin** logs in as `admin@taxi.local` → dashboard shows the updated
+   statistics → *Rides* shows distance and price for every ride.
 
 Invalid actions to demonstrate as well: accepting an already accepted ride,
-cancelling a started ride, and a passenger opening an admin URL (403).
+cancelling a started ride, a passenger opening an admin URL (403), and
+selecting a point far outside Tehran to see the straight-line fallback
+message.
+
+A plain text request without the map still works: type origin and
+destination and submit – the ride becomes REQUESTED and any driver can
+accept it manually (the original phase-1 workflow).
 
 ---
 
@@ -258,16 +336,17 @@ service layer.
 ## Architecture
 
 ```
-Browser
-   │  HTTP (forms, links)
+Browser  (Leaflet map, small Vanilla JS)
+   │  HTTP (forms, links, fetch)
    ▼
-Express Routes
+Express Routes  (HTML pages + JSON API)
    │
    ▼
 Controllers
    │
    ▼
-Services  (business rules, validation, status workflow)
+Services  (business rules, validation, status workflow,
+           Dijkstra routing, pricing, driver selection)
    │
    ▼
 Repositories  (parameterized SQL)
@@ -276,7 +355,8 @@ Repositories  (parameterized SQL)
 PostgreSQL
 ```
 
-See `docs/architecture.md` for diagrams (class, sequence, architecture).
+See `docs/architecture.md` for diagrams (class, sequence, architecture)
+and `docs/routing.md` for the map and routing design.
 
 ---
 
@@ -286,9 +366,12 @@ The full university documentation is in `docs/`:
 
 - `proposal.md` – project proposal and scope
 - `srs.md` – software requirements specification
-- `use-cases.md` – use case diagram and descriptions
+- `use-cases.md` – use case and activity diagrams with descriptions
 - `architecture.md` – architecture, class and sequence diagrams
 - `database.md` – ER diagram and schema description
+- `routing.md` – map (Leaflet/OpenStreetMap), Dijkstra routing, pricing,
+  driver assignment
 - `testing.md` – test cases and how to run the tests
 - `bug-report.md` – bugs found during development and their fixes
 - `code-review.md` – code review checklist and findings
+

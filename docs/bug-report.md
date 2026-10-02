@@ -110,3 +110,80 @@ which works. Standard PostgreSQL installations on port 5432 are unaffected.
 - `bcrypt` is a native module; its install script was flagged by npm's
   allow-scripts policy but the module loaded correctly afterwards (verified
   with a hash/compare smoke test).
+
+---
+
+# Phase 2 bugs (map, routing, pricing)
+
+## BUG-4: Map API could not read JSON request bodies
+
+- **Found in:** Phase 2 (map feature, first end-to-end API test)
+- **Severity:** High (the route calculation endpoint failed completely)
+- **Symptom:** `POST /api/route` returned `{"error":"Something went wrong."}`
+  (HTTP 500). The server log showed
+  `TypeError: Cannot destructure property 'originLat' of 'req.body' as it is undefined.`
+- **Steps to reproduce:**
+  1. Log in as a passenger.
+  2. POST JSON `{originLat, originLng, destinationLat, destinationLng}` to
+     `/api/route`.
+  3. Observe HTTP 500.
+- **Root cause:** The application was only configured with
+  `express.urlencoded()`, because phase 1 used HTML forms exclusively. The
+  new map code sends JSON with `fetch()`, and no JSON body parser was
+  registered, so `req.body` stayed undefined for those requests.
+- **Fix:** Added `app.use(express.json())` next to the urlencoded parser in
+  `src/app.js`.
+- **Verification:** `POST /api/route` now returns the route JSON, and the
+  browser map draws the polyline. Invalid input returns HTTP 400 with a
+  readable `{"error": ...}` message.
+
+---
+
+## BUG-5: Dijkstra accepted node ids that do not exist
+
+- **Found in:** Phase 2 (by the new unit test "returns null for unknown nodes")
+- **Severity:** Low (not reachable from the GUI, but a real correctness gap)
+- **Symptom:** `dijkstra('vanak', 'does-not-exist')` returned
+  `{ distanceKm: undefined, nodeIds: ['does-not-exist'] }` instead of
+  reporting that no route exists.
+- **Root cause:** The algorithm seeded the distance map from the node list but
+  never verified that the requested start and end ids are actually part of the
+  graph. An unknown end id never appeared in the distance map, so the
+  "unreachable" check (`Infinity`) never triggered.
+- **Fix:** `dijkstra()` now returns `null` immediately when either id is not a
+  known node:
+
+  ```js
+  if (!getNode(startId) || !getNode(endId)) return null;
+  ```
+- **Verification:** The unit test passes, and the same guard protects the
+  route calculation from unexpected ids.
+
+---
+
+## BUG-6: Wrong test expectation for the Azadi–Tajrish distance
+
+- **Found in:** Phase 2 (new geo tests)
+- **Severity:** Low (test bug, not an application bug)
+- **Symptom:** The new test expected the straight-line distance between Azadi
+  Square and Tajrish Square to be more than 15 km; the code returned 14.48 km
+  and the test failed.
+- **Root cause:** The expectation was guessed instead of computed. The
+  Haversine result (14.48 km) is correct for the stored coordinates; the
+  approximate driving distance is longer (~16–17 km) because roads are not
+  straight.
+- **Fix:** Corrected the test to the true range (14–15 km) and renamed it, so
+  the difference between straight-line and road distance stays visible in the
+  test suite.
+- **Verification:** Full suite green (82 tests).
+
+---
+
+## Phase 2 setup notes
+
+- The four demo drivers and the `driver_locations` table are added by the
+  idempotent migration `database/migrations/001_add_ride_locations.sql`; the
+  migration was run twice on the existing database to confirm that it neither
+  duplicates rows nor destroys the rides created during phase 1.
+- Leaflet is copied into `public/vendor/leaflet/` so the map library works
+  without a CDN. Only the OpenStreetMap tile images need internet access.

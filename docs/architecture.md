@@ -7,11 +7,12 @@ layer below it; the web layer never talks to the database directly.
 
 ```mermaid
 flowchart TD
-    B[Browser<br/>HTML forms, links, small JS] -->|HTTP| R[Express Routes]
+    B[Browser<br/>HTML forms, Leaflet map, small JS] -->|HTTP + fetch JSON| R[Express Routes]
     R --> C[Controllers<br/>request/response handling]
-    C --> S[Services<br/>business rules, validation, workflow]
+    C --> S[Services<br/>business rules, validation, workflow,<br/>Dijkstra routing, pricing, driver selection]
     S --> Rep[Repositories<br/>parameterized SQL]
     Rep --> DB[(PostgreSQL)]
+    S -.->|in-memory graph| G[data/tehranGraph.js]
 ```
 
 Responsibilities:
@@ -19,12 +20,14 @@ Responsibilities:
 | Layer        | Directory            | Responsibility                                              |
 |--------------|----------------------|-------------------------------------------------------------|
 | Routes       | `src/routes/`        | URL definitions, attach auth middleware per role            |
-| Controllers  | `src/controllers/`   | Read request data, call services, render views or redirect  |
-| Services     | `src/services/`      | Validation, permissions, ride status workflow, statistics   |
+| Controllers  | `src/controllers/`   | Read request data, call services, render views or JSON      |
+| Services     | `src/services/`      | Validation, permissions, ride status workflow, statistics, routing, pricing, driver assignment |
 | Repositories | `src/repositories/`  | All SQL statements (parameterized)                          |
+| Graph data   | `src/data/`          | The simplified Tehran road graph (nodes and edges)          |
 | Middleware   | `src/middleware/`    | `requireAuth`, `requireRole`, error handling                |
 | Views        | `views/`             | EJS templates (presentation only)                           |
-| Database     | `src/db/`            | Connection pool and setup script                            |
+| Browser JS   | `public/js/`         | Leaflet map behaviour, route drawing, status polling        |
+| Database     | `src/db/`            | Connection pool, setup and migration scripts                |
 
 ## 2. Module structure
 
@@ -33,7 +36,12 @@ Responsibilities:
 - `src/server.js` – starts the HTTP server
 - `src/constants.js` – roles, statuses and the transition table
 - `src/errors.js` – `AppError` for expected errors
-- `src/config.js` – reads `.env`
+- `src/config.js` – `.env` values plus pricing and routing constants
+- `src/services/routingService.js` – Dijkstra on the Tehran graph, nearest
+  node lookup, Haversine fallback
+- `src/services/pricingService.js` – price and duration estimation
+- `src/services/driverService.js` – driver locations and nearest driver
+- `src/data/tehranGraph.js` – 13 nodes / 20 edges of the simplified network
 
 ## 3. Class diagram (modules and their main operations)
 
@@ -51,11 +59,13 @@ classDiagram
         +showRides(req, res)
         +showNewRideForm(req, res)
         +createRide(req, res)
+        +showRideDetails(req, res)
         +cancelRide(req, res)
     }
     class DriverController {
         +dashboard(req, res)
         +showRides(req, res)
+        +showRideDetails(req, res)
         +acceptRide(req, res)
         +startRide(req, res)
         +completeRide(req, res)
@@ -67,19 +77,39 @@ classDiagram
         +setUserActive(req, res)
         +showRides(req, res)
     }
+    class ApiController {
+        +calculateRoute(req, res)
+        +listDrivers(req, res)
+        +listGraphNodes(req, res)
+        +getRide(req, res)
+    }
     class AuthService {
         +register(name, email, password, role)
         +login(email, password)
     }
     class RideService {
-        +requestRide(user, data)
+        +requestRide(user, input)
+        +getRideDetails(user, id)
         +cancelByPassenger(user, id)
         +acceptRide(user, id)
         +startRide(user, id)
         +completeRide(user, id)
         +cancelByDriver(user, id)
-        +getPassengerDashboard(id)
-        +getDriverDashboard(id)
+    }
+    class RoutingService {
+        +calculateRoute(coords)
+        +dijkstra(startId, endId)
+        +findNearestNode(lat, lng)
+    }
+    class PricingService {
+        +calculatePrice(distanceKm)
+        +calculateDuration(distanceKm)
+        +estimateRide(distanceKm)
+    }
+    class DriverService {
+        +getDriversForMap()
+        +findNearestAvailableDriver(lat, lng)
+        +getDriverLocation(driverId)
     }
     class AdminService {
         +getDashboardStats()
@@ -105,55 +135,86 @@ classDiagram
         +updateStatus(rideId, from, to)
         +getStats()
     }
-    class Constants {
-        +ROLES
-        +RIDE_STATUS
-        +canTransition(from, to)
+    class DriverRepository {
+        +findAllWithLocations()
+        +findAvailableWithLocations()
+        +findLocationByDriver(id)
     }
-    class AuthMiddleware {
-        +requireAuth(req, res, next)
-        +requireRole(...roles)
-        +requireGuest(req, res, next)
+    class TehranGraph {
+        +TEHRAN_NODES
+        +TEHRAN_EDGES
+    }
+    class GeoUtils {
+        +haversineDistanceKm(lat1, lng1, lat2, lng2)
+        +isValidCoordinates(lat, lng)
+        +roundTo(value, decimals)
     }
 
     AuthController --> AuthService
     PassengerController --> RideService
     DriverController --> RideService
+    DriverController --> DriverService
     AdminController --> AdminService
+    ApiController --> RoutingService
+    ApiController --> PricingService
+    ApiController --> DriverService
+    ApiController --> RideService
     AuthService --> UserRepository
     RideService --> RideRepository
-    RideService --> Constants
+    RideService --> RoutingService
+    RideService --> PricingService
+    RideService --> DriverService
+    RoutingService --> TehranGraph
+    RoutingService --> GeoUtils
+    DriverService --> DriverRepository
+    DriverService --> GeoUtils
+    PricingService --> Config
     AdminService --> UserRepository
     AdminService --> RideRepository
 ```
 
-## 4. Sequence diagram – passenger creates a ride
+## 4. Sequence diagram – passenger creates a ride with the map
 
 ```mermaid
 sequenceDiagram
     actor P as Passenger
-    participant B as Browser
+    participant B as Browser (Leaflet)
     participant C as PassengerController
     participant S as RideService
+    participant RT as RoutingService
+    participant PR as PricingService
+    participant D as DriverService
     participant R as RideRepository
     participant DB as PostgreSQL
 
-    P->>B: Fill origin + destination, submit
-    B->>C: POST /passenger/rides
-    C->>S: requestRide(user, {origin, destination})
-    S->>S: validate fields, check role
-    S->>R: createRide({passengerId, origin, destination})
-    R->>DB: INSERT INTO rides ... RETURNING id
-    DB-->>R: new ride id
-    R->>DB: SELECT ride with passenger/driver names
-    DB-->>R: ride row
-    R-->>S: ride
-    S-->>C: ride
-    C-->>B: 302 redirect to /passenger/rides
-    B->>P: Ride list with REQUESTED badge
+    P->>B: Click origin and destination on the map
+    P->>B: Click "Calculate Route"
+    B->>RT: POST /api/route (via ApiController)
+    RT->>RT: findNearestNode + dijkstra
+    RT->>PR: estimateRide(distanceKm)
+    PR-->>RT: price + duration
+    RT-->>B: JSON { distanceKm, path, price, durationMin }
+    B->>P: Draw polyline, show distance/time/price
+
+    P->>B: Click "Request Taxi"
+    B->>C: POST /passenger/rides (with coordinates)
+    C->>S: requestRide(user, input)
+    S->>RT: calculateRoute(coordinates)
+    RT-->>S: distance, path
+    S->>PR: estimateRide(distanceKm)
+    PR-->>S: price, duration
+    S->>D: findNearestAvailableDriver(originLat, originLng)
+    D-->>S: nearest driver + distance
+    S->>R: createRide({... driverId})
+    R->>DB: INSERT INTO rides (... status='ACCEPTED')
+    DB-->>R: new ride
+    R-->>S: ride row
+    S-->>C: { ride, assignment }
+    C-->>B: 302 redirect to /passenger/rides/:id
+    B->>P: Ride details with driver marker and route
 ```
 
-## 5. Sequence diagram – driver accepts a ride
+## 5. Sequence diagram – driver accepts a ride (manual workflow)
 
 ```mermaid
 sequenceDiagram
@@ -182,7 +243,7 @@ sequenceDiagram
         S-->>C: accepted ride
         C-->>B: 302 redirect to /driver/dashboard
     end
-    B->>D: Dashboard shows active ride (ACCEPTED)
+    B->>D: Dashboard shows active ride on the map (ACCEPTED)
 ```
 
 ## 6. Request flow through the middlewares
@@ -190,13 +251,28 @@ sequenceDiagram
 ```mermaid
 flowchart LR
     Req[HTTP request] --> Static[express.static]
-    Static --> Body[urlencoded body parser]
+    Static --> Body[urlencoded + JSON body parser]
     Body --> Sess[express-session]
     Sess --> Locals[flash + template locals]
-    Locals --> Routes[Role routers]
+    Locals --> Routes[Role routers + API router]
     Routes --> AuthMW{requireAuth<br/>requireRole}
     AuthMW -->|allowed| Ctrl[Controller]
     AuthMW -->|denied| Err[Error handler]
     Ctrl --> Svc[Service] --> Repo[Repository] --> DB[(PostgreSQL)]
-    Ctrl -->|render| View[EJS view] --> Res[HTTP response]
+    Ctrl -->|HTML| View[EJS view] --> Res[HTTP response]
+    Ctrl -->|JSON| Res
+```
+
+## 7. Map data flow
+
+```mermaid
+flowchart LR
+    Map[Leaflet map in browser] -->|tiles| OSM[(OpenStreetMap<br/>tile server)]
+    Map -->|POST /api/route| API[ApiController]
+    Map -->|GET /api/drivers| API
+    Map -->|GET /api/rides/:id polling| API
+    API --> Routing[routingService<br/>Dijkstra]
+    API --> Pricing[pricingService]
+    API --> Drivers[driverService]
+    Drivers --> DL[(driver_locations)]
 ```

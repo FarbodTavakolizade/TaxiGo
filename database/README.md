@@ -18,6 +18,24 @@ The project uses PostgreSQL. Two options are supported:
    npm run db:setup
    ```
 
+4. If the database already exists from the first project phase (before the
+   map feature), upgrade it in place instead of recreating it:
+
+   ```
+   npm run db:migrate
+   ```
+
+   The files in `migrations/` add the new columns and the `driver_locations`
+   table. They are idempotent and never delete data.
+
+## Database structure
+
+| Table            | Purpose                                             |
+|------------------|-----------------------------------------------------|
+| users            | Accounts (passenger / driver / admin)               |
+| rides            | Ride requests, status workflow and route estimates  |
+| driver_locations | Simulated map positions of the demo drivers         |
+
 ## Option B - project-local PostgreSQL instance (used on this machine)
 
 On this machine the global PostgreSQL service password was unknown, so the
@@ -37,15 +55,17 @@ Start / stop commands (PostgreSQL 18 binaries):
 "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D C:\Users\Asus\taxi_pgdata stop
 ```
 
-Then `npm run db:setup` as above.
+Then `npm run db:setup` (new) or `npm run db:migrate` (existing) as above.
 
 ## Demo accounts
 
 All seed accounts use simple demo passwords:
 
-| Role      | Email                  | Password     |
-|-----------|------------------------|--------------|
-| Admin     | admin@taxi.local       | admin123     |
-| Driver    | driver@taxi.local      | driver123    |
-| Driver    | driver2@taxi.local     | driver123    |
-| Passenger | passenger@taxi.local   | passenger123 |
+| Role      | Email                  | Password     | Simulated location |
+|-----------|------------------------|--------------|--------------------|
+| Admin     | admin@taxi.local       | admin123     | -                  |
+| Driver    | driver@taxi.local      | driver123    | Vanak              |
+| Driver    | driver2@taxi.local     | driver123    | Tajrish            |
+| Driver    | driver3@taxi.local     | driver123    | Azadi              |
+| Driver    | driver4@taxi.local     | driver123    | Sadeghieh          |
+| Passenger | passenger@taxi.local   | passenger123 | -                  |

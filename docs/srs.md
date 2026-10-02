@@ -58,6 +58,29 @@ is a small state machine with five states and strictly limited transitions.
 | FR-3.7 | A driver can cancel an ACCEPTED ride assigned to them.                            |
 | FR-3.8 | A driver sees their personal ride history.                                        |
 | FR-3.9 | A driver can only act on rides assigned to them.                                  |
+| FR-3.10| A driver sees a map with their own simulated location, the pickup point, the destination and the route. |
+
+### 4.3a Map, route and pricing (phase 2)
+
+| ID     | Requirement                                                                       |
+|--------|-----------------------------------------------------------------------------------|
+| FR-8.1 | The passenger can select origin and destination by clicking an interactive Tehran map (Leaflet + OpenStreetMap). |
+| FR-8.2 | Two selection modes exist (Select Origin / Select Destination); the first click sets the origin, the second the destination. |
+| FR-8.3 | The selection can be reset at any time.                                           |
+| FR-8.4 | The selected coordinates are stored with the ride request (origin_lat, origin_lng, destination_lat, destination_lng). |
+| FR-8.5 | Existing text-based origin/destination fields remain usable without the map.       |
+| FR-8.6 | The system calculates the shortest route between the nearest graph nodes using Dijkstra's algorithm on a simplified Tehran road graph. |
+| FR-8.7 | The route is displayed as a polyline on the map together with the distance.        |
+| FR-8.8 | The distance is calculated in kilometers; if the points are outside the simplified graph, a friendly message is shown and the straight-line Haversine distance is used as fallback. |
+| FR-8.9 | Invalid coordinates are rejected with a clear message; the application never crashes. |
+| FR-8.10| The estimated price is calculated as BASE_FARE + distanceKm × PRICE_PER_KM and rounded. |
+| FR-8.11| The estimated duration is calculated as distance / AVERAGE_SPEED_KMH and shown in minutes. |
+| FR-8.12| Pricing values and average speed are configurable in one place (src/config.js).    |
+| FR-8.13| Simulated driver locations (fixed Tehran coordinates, not real GPS) are shown on the map with a distinct marker style. |
+| FR-8.14| When a ride is requested with coordinates, the nearest available driver (Haversine distance) is assigned automatically and the ride starts as ACCEPTED. |
+| FR-8.15| When no driver is available, the ride stays REQUESTED and remains manually acceptable. |
+| FR-8.16| The ride details page shows origin, destination, driver, distance, estimated duration, estimated price, status and created time, plus a map. |
+| FR-8.17| Active ride pages may refresh the status with simple HTTP polling (no WebSockets). |
 
 ### 4.4 Admin
 
@@ -117,14 +140,26 @@ Only the following states and transitions exist:
 | NFR-8   | `npm test` runs Jest unit tests for the core business rules.                 |
 | NFR-9   | The code base stays small and understandable (student project level).        |
 | NFR-10  | UI works without frontend frameworks or build steps.                         |
+| NFR-11  | The map uses Leaflet with OpenStreetMap tiles; no paid map API and no Google Maps. |
+| NFR-12  | No real-time technology (no WebSockets, no Socket.IO, no queues); only plain HTTP requests and simple polling. |
+| NFR-13  | No real GPS; driver positions are simulated fixed coordinates.               |
+| NFR-14  | Routing runs locally on a small built-in graph (no external routing service). |
+| NFR-15  | The OpenStreetMap attribution is shown on every map (license requirement).   |
+| NFR-16  | Database changes for existing installations are applied with idempotent migrations that never destroy data. |
 
 ## 6. External interfaces
 
-- Web browser (HTML forms and links; one small JS file for confirm dialogs)
+- Web browser (HTML forms and links; small JS files for map/confirmations)
 - PostgreSQL database on a configurable host and port
+- OpenStreetMap tile server for map backgrounds (free, no key)
 
 ## 7. Assumptions and constraints
 
-- The database is set up by the developer with `npm run db:setup`.
-- Origin and destination are free text; there is no geocoding.
+- The database is set up by the developer with `npm run db:setup` (new) or
+  `npm run db:migrate` (existing installation).
+- Origin and destination are free text on the map; there is no geocoding
+  service, so the text fields are not converted to coordinates automatically.
+- The road graph is intentionally small and approximate; it demonstrates the
+  algorithm and is not a navigation-grade model of Tehran.
+- Driver locations are simulated and never change at runtime.
 - Only one database instance and one web process are used.

@@ -79,7 +79,44 @@ These would be reasonable in a production system but contradict the
 - Soft-delete + audit log for rides
 - Additional performance indexes and query analysis
 
-## 6. Conclusion
+## 6. Phase 2 review (map, routing, pricing)
+
+Additional rules that were applied while extending the project:
+
+| Rule                                                            | Status | Notes |
+|-----------------------------------------------------------------|--------|-------|
+| Reuse existing code instead of rewriting                        | ✔      | Services/repositories were extended, not replaced; the phase-1 ride workflow, routes and pages still work unchanged |
+| Routing logic in a service, not in controllers or views         | ✔      | `routingService` (Dijkstra), `pricingService`, `driverService` |
+| Pricing constants in one place                                  | ✔      | `src/config.js` (`BASE_FARE`, `PRICE_PER_KM`, `ROUND_TO`, `AVERAGE_SPEED_KMH`) |
+| No business logic in EJS                                        | ✔      | Templates only render values; the map code lives in `public/js/` |
+| Parameterized SQL only                                          | ✔      | The new `driverRepository` uses `$1` placeholders; no string-built queries |
+| Database changes are non-destructive                            | ✔      | Idempotent migration with `ADD COLUMN IF NOT EXISTS` / `ON CONFLICT DO NOTHING`; verified by running it twice |
+| Access control on the new endpoints                             | ✔      | All `/api/*` routes require a session; `/api/rides/:id` reuses the service-level ownership check (owner passenger or assigned driver only) |
+| No real-time technology                                         | ✔      | Plain `fetch`; the ride details page polls `/api/rides/:id` every 4 seconds. No WebSockets, no queues |
+| No real GPS                                                     | ✔      | Driver positions are fixed demo coordinates in `driver_locations` |
+| New dependency justified                                        | ✔      | Only Leaflet was added (the client library for the required map); it is served from `public/vendor/` |
+| The project stays small                                         | ✔      | 3 new small services, 1 graph data file, 4 browser JS files; no new layers or frameworks |
+
+Additional findings fixed during the phase-2 review:
+
+1. **`express.json()` was missing** – the JSON API returned 500 for every
+   request. Fixed in `app.js`. See `docs/bug-report.md` BUG-4.
+2. **Dijkstra accepted non-existent node ids** – added an explicit guard;
+   found by a unit test. See BUG-5.
+3. **API errors were rendered as HTML redirects** – the central error handler
+   now returns JSON (`{ "error": "..." }`) for `/api/*` paths, so the map code
+   can display the real message.
+4. **Ride details access had to be narrow** – the new page needs to be visible
+   to the owning passenger *and* the assigned driver, but nobody else; this is
+   enforced once in `rideService.getRideDetails()` and reused by the page and
+   the JSON endpoint.
+
+Known limitation (accepted for this project scope): the tile images come from
+the public OpenStreetMap server, so the map background needs internet access
+at demo time. The application itself, including routing, pricing and the
+database, runs fully offline.
+
+## 7. Conclusion
 
 The code base matches the requested scope: small, readable, layered, with
 parameterized SQL, hashed passwords, strict role checks and a single source of

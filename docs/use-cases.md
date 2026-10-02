@@ -147,7 +147,81 @@ flowchart TD
     Comp --> End
 ```
 
-## 4. Access matrix
+## 4. Activity diagram – request with map and automatic driver assignment
+
+```mermaid
+flowchart TD
+    Start([Passenger opens Request Taxi]) --> Map[Tehran map with driver markers]
+    Map --> PickOrigin[Select origin on map]
+    PickOrigin --> PickDest[Select destination on map]
+    PickDest --> Calc[Calculate Route]
+    Calc --> Dijkstra[Dijkstra on the simplified road graph]
+    Dijkstra --> Fallback{Points inside the graph?}
+    Fallback -->|No| Straight[Use straight-line Haversine distance<br/>+ friendly message]
+    Fallback -->|Yes| Polyline[Draw route polyline on map]
+    Straight --> Estimates[Distance, estimated time, estimated price]
+    Polyline --> Estimates
+    Estimates --> Request[Request Taxi]
+    Request --> FindDriver{Available driver?}
+    FindDriver -->|Yes| Assign[Assign nearest driver<br/>status: ACCEPTED]
+    FindDriver -->|No| Waiting[status: REQUESTED<br/>manual acceptance]
+    Assign --> Show[Show driver + route on ride details map]
+    Waiting --> Show
+    Show --> DriverFlow[Driver starts the ride]
+    DriverFlow --> Complete[Ride COMPLETED]
+    Complete --> End([Final state])
+```
+
+## 5. Use case descriptions (map features)
+
+### UC-14 Select origin and destination on the map
+
+- **Actor:** Passenger
+- **Precondition:** Logged in as an active passenger
+- **Main flow:**
+  1. Passenger opens `/passenger/rides/new`.
+  2. The Tehran map loads with the simulated driver locations.
+  3. Passenger selects "Select Origin" and clicks a point (marker A).
+  4. The mode switches to destination automatically; passenger clicks a
+     second point (marker B).
+  5. Marker positions can be adjusted by dragging (or reset with "Reset").
+- **Alternative flow:** Passenger types origin/destination text and submits
+  without the map → the ride is created as REQUESTED (old workflow).
+
+### UC-15 Calculate route and price
+
+- **Actor:** Passenger
+- **Precondition:** Both points selected
+- **Main flow:**
+  1. Passenger clicks "Calculate Route".
+  2. System snaps both points to the nearest graph nodes and runs Dijkstra.
+  3. System returns distance, estimated duration and estimated price.
+  4. The shortest path is drawn as a polyline on the map.
+- **Alternative flow:** Points far outside the simplified graph → straight-line
+  distance with a friendly note. Invalid points → clear error message.
+
+### UC-16 Automatic driver assignment
+
+- **Actor:** Passenger (triggered), Driver (receives the ride)
+- **Precondition:** Origin coordinates present; at least one available driver
+- **Main flow:**
+  1. System loads available drivers (active, has location, no active ride).
+  2. System computes the Haversine distance from the origin to each driver.
+  3. The nearest driver is assigned; the ride is created as ACCEPTED.
+  4. The passenger sees the driver marker and the route on the ride details page.
+- **Alternative flow:** No driver available → the ride stays REQUESTED and any
+  driver can accept it manually.
+
+### UC-17 View assigned ride on the driver map
+
+- **Actor:** Driver
+- **Main flow:**
+  1. Driver opens the dashboard (or the ride details page).
+  2. The map shows the driver's simulated location, the passenger pickup
+     point, the destination and the route between them.
+  3. Driver starts and completes the ride with the usual buttons.
+
+## 6. Access matrix
 
 | Page / action                  | Passenger | Driver | Admin |
 |--------------------------------|-----------|--------|-------|
@@ -166,3 +240,9 @@ flowchart TD
 | /admin/users                   | ✘         | ✘      | ✔     |
 | /admin/users/:id/active        | ✘         | ✘      | ✔     |
 | /admin/rides                   | ✘         | ✘      | ✔     |
+| /passenger/rides/:id (details) | ✔ (own)   | ✘      | ✘     |
+| /driver/rides/:id (details)    | ✘         | ✔(own) | ✘     |
+| /api/route                     | ✔         | ✔      | ✔     |
+| /api/drivers                   | ✔         | ✔      | ✔     |
+| /api/rides/:id                 | ✔ (own)   | ✔(own) | ✘     |
+| /api/graph                     | ✔         | ✔      | ✔     |
