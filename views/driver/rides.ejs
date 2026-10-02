@@ -1,0 +1,38 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+  <h1>My Rides</h1>
+</div>
+
+<% if (rides.length === 0) { %>
+  <div class="empty-state">You have not worked on any rides yet.</div>
+<% } else { %>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Passenger</th>
+        <th>From</th>
+        <th>To</th>
+        <th>Status</th>
+        <th>Requested at</th>
+        <th>Completed at</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% rides.forEach(function (ride) { %>
+        <tr>
+          <td><%= ride.id %></td>
+          <td><%= ride.passenger_name %></td>
+          <td><%= ride.origin %></td>
+          <td><%= ride.destination %></td>
+          <td><%- include('../partials/status-badge', { status: ride.status }) %></td>
+          <td><%= helpers.formatDateTime(ride.created_at) %></td>
+          <td><%= helpers.formatDateTime(ride.completed_at) %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } %>
+
+<%- include('../partials/footer') %>

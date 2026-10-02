@@ -6,7 +6,10 @@ const { ROLES } = require('../constants');
 const router = express.Router();
 
 // Everything below is only for logged-in passengers.
-router.use(requireAuth, requireRole(ROLES.PASSENGER));
+// The middleware is scoped to the /passenger path, otherwise it would also
+// run for requests that simply pass through this router (Express runs
+// router.use middleware for every request that reaches the router).
+router.use('/passenger', requireAuth, requireRole(ROLES.PASSENGER));
 
 router.get('/passenger/dashboard', passengerController.dashboard);
 router.get('/passenger/rides', passengerController.showRides);

@@ -1,0 +1,90 @@
+<%- include('../partials/header') %>
+
+<div class="page-header">
+  <h1>Driver Dashboard</h1>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value"><%= completedRides %></div>
+    <div class="stat-label">Completed rides</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value"><%= availableRides.length %></div>
+    <div class="stat-label">Available requests</div>
+  </div>
+</div>
+
+<% if (activeRide) { %>
+  <div class="card">
+    <h2>Current ride #<%= activeRide.id %></h2>
+    <table class="table">
+      <tbody>
+        <tr><th>Passenger</th><td><%= activeRide.passenger_name %></td></tr>
+        <tr><th>From</th><td><%= activeRide.origin %></td></tr>
+        <tr><th>To</th><td><%= activeRide.destination %></td></tr>
+        <tr>
+          <th>Status</th>
+          <td><%- include('../partials/status-badge', { status: activeRide.status }) %></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="btn-row" style="margin-top: 12px;">
+      <% if (activeRide.status === 'ACCEPTED') { %>
+        <form method="POST" action="/driver/rides/<%= activeRide.id %>/start">
+          <button type="submit" class="btn btn-primary">Start Ride</button>
+        </form>
+        <form method="POST" action="/driver/rides/<%= activeRide.id %>/cancel">
+          <button type="submit" class="btn btn-danger"
+                  data-confirm="Cancel this ride?">Cancel</button>
+        </form>
+      <% } else if (activeRide.status === 'STARTED') { %>
+        <form method="POST" action="/driver/rides/<%= activeRide.id %>/complete">
+          <button type="submit" class="btn btn-primary">Complete Ride</button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+<% } else { %>
+  <div class="empty-state">You have no active ride. Accept one of the requests below.</div>
+<% } %>
+
+<div class="card">
+  <h2>Available ride requests</h2>
+
+  <% if (availableRides.length === 0) { %>
+    <div class="empty-state">There are no ride requests waiting right now.</div>
+  <% } else { %>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Passenger</th>
+          <th>From</th>
+          <th>To</th>
+          <th>Requested at</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% availableRides.forEach(function (ride) { %>
+          <tr>
+            <td><%= ride.id %></td>
+            <td><%= ride.passenger_name %></td>
+            <td><%= ride.origin %></td>
+            <td><%= ride.destination %></td>
+            <td><%= helpers.formatDateTime(ride.created_at) %></td>
+            <td>
+              <form method="POST" action="/driver/rides/<%= ride.id %>/accept">
+                <button type="submit" class="btn btn-primary btn-small">Accept</button>
+              </form>
+            </td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  <% } %>
+</div>
+
+<%- include('../partials/footer') %>
