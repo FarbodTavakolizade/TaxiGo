@@ -63,6 +63,9 @@ function findNearestNode(lat, lng) {
  * to read and explain.
  */
 function dijkstra(startId, endId) {
+  // Both nodes must exist in the graph, otherwise there is no route.
+  if (!getNode(startId) || !getNode(endId)) return null;
+
   const distances = new Map(); // nodeId -> best known distance from start
   const previous = new Map();  // nodeId -> previous node on the best path
   const visited = new Set();
