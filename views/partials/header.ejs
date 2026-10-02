@@ -11,21 +11,22 @@
     <div class="container nav-inner">
       <a class="brand" href="/">Taxi System</a>
       <nav class="nav-links">
+        <% var isActive = function (path) { return currentPath === path ? 'active' : ''; }; %>
         <% if (!currentUser) { %>
-          <a href="/login">Login</a>
-          <a href="/register">Register</a>
+          <a class="<%= isActive('/login') %>" href="/login">Login</a>
+          <a class="<%= isActive('/register') %>" href="/register">Register</a>
         <% } else { %>
           <% if (currentUser.role === 'PASSENGER') { %>
-            <a href="/passenger/dashboard">Dashboard</a>
-            <a href="/passenger/rides">My Rides</a>
-            <a href="/passenger/rides/new">Request Taxi</a>
+            <a class="<%= isActive('/passenger/dashboard') %>" href="/passenger/dashboard">Dashboard</a>
+            <a class="<%= isActive('/passenger/rides') %>" href="/passenger/rides">My Rides</a>
+            <a class="<%= isActive('/passenger/rides/new') %>" href="/passenger/rides/new">Request Taxi</a>
           <% } else if (currentUser.role === 'DRIVER') { %>
-            <a href="/driver/dashboard">Dashboard</a>
-            <a href="/driver/rides">My Rides</a>
+            <a class="<%= isActive('/driver/dashboard') %>" href="/driver/dashboard">Dashboard</a>
+            <a class="<%= isActive('/driver/rides') %>" href="/driver/rides">My Rides</a>
           <% } else if (currentUser.role === 'ADMIN') { %>
-            <a href="/admin/dashboard">Dashboard</a>
-            <a href="/admin/users">Users</a>
-            <a href="/admin/rides">Rides</a>
+            <a class="<%= isActive('/admin/dashboard') %>" href="/admin/dashboard">Dashboard</a>
+            <a class="<%= isActive('/admin/users') %>" href="/admin/users">Users</a>
+            <a class="<%= isActive('/admin/rides') %>" href="/admin/rides">Rides</a>
           <% } %>
           <span class="nav-user"><%= currentUser.name %> (<%= currentUser.role.toLowerCase() %>)</span>
           <a class="nav-logout" href="/logout">Logout</a>

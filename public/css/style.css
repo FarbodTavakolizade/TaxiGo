@@ -80,6 +80,13 @@ a:hover {
   text-decoration: none;
 }
 
+.nav-links a.active {
+  color: #fff;
+  font-weight: 600;
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 2px;
+}
+
 .nav-user {
   color: #8b949e;
   font-size: 13px;
@@ -148,6 +155,16 @@ a:hover {
 
 .table tr:last-child td {
   border-bottom: none;
+}
+
+/* Forms inside table cells should not disturb the row height. */
+.table form {
+  display: inline;
+  margin: 0;
+}
+
+.table td:last-child {
+  white-space: nowrap;
 }
 
 /* ===== Status badges ===== */

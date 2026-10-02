@@ -41,6 +41,7 @@ app.use((req, res, next) => {
   res.locals.flash = req.session.flash || {};
   delete req.session.flash;
 
+  res.locals.currentPath = req.path;
   res.locals.helpers = { formatDateTime };
   next();
 });
