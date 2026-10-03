@@ -60,6 +60,9 @@ layered architecture, and a minimal dependency list.
 - Green/white taxi-app interface (plain CSS3, responsive, no frameworks)
 - **Light and Dark mode** with a toggle in the navigation bar (saved in
   `localStorage`; frontend only, no database or backend involvement)
+- **UI polish**: animated "finding a driver" state, ride status tracker,
+  toast notifications, simulated driver movement on the map, completion
+  animation and friendly empty states
 
 ---
 
@@ -231,13 +234,16 @@ university_project/
 │   └── errors/                # Error page
 │
 ├── public/
-│   ├── css/style.css          # Taxi-app stylesheet with light + dark themes
+│   ├── css/style.css          # Taxi-app stylesheet: light + dark themes,
+│   │                          # animations, toasts, status tracker
 │   ├── js/
 │   │   ├── main.js            # Confirm dialogs
 │   │   ├── theme.js           # Light/dark toggle (localStorage)
+│   │   ├── toast.js           # Toast notification component
 │   │   ├── map-utils.js       # Shared Leaflet helpers
 │   │   ├── request-map.js     # Origin/destination selection + route button
-│   │   └── ride-view.js       # Read-only ride map + status polling
+│   │   │                      # + "finding a driver" animation
+│   │   └── ride-view.js       # Ride map, status polling, driver movement
 │   └── vendor/leaflet/        # Leaflet library (served locally)
 │
 ├── tests/                     # Jest unit tests (7 suites)
@@ -317,6 +323,28 @@ marker or routing code was changed.
 This feature is purely frontend (CSS variables, Vanilla JavaScript,
 `localStorage`). It adds no dependency, no database column, no API endpoint and
 no backend logic.
+
+---
+
+## UI polish (animations and notifications)
+
+Small frontend touches that make the demo feel finished. All of them reuse the
+existing pages, routes and data — no backend logic was changed.
+
+| Feature | Where | What it does |
+|---------|-------|--------------|
+| Finding a driver | Request taxi page | While the request is submitted, an overlay shows a pulsing 🚕 "Finding a driver..." then switches to "✓ Driver Found" with the assigned driver's name before opening the ride |
+| Status tracker | Ride details (passenger + driver), driver dashboard | A 4-step tracker (📝 Requested → 🚕 Driver Found → 🟢 Ride Started → 🏁 Completed) with the current step highlighted and finished steps ticked |
+| Toast notifications | Every page | One reusable `showToast(message, type)` component (success / error / warning / info). Server flash messages are converted to toasts automatically, so existing actions get notifications without backend changes |
+| Driver movement | Ride map | The driver marker is interpolated smoothly from its location to the pickup point (and to the destination when the ride is running). This is a **visual simulation only** — no GPS, no WebSockets, no database writes |
+| Completion animation | Ride details | A 🎉 "Ride Completed!" card fades and scales in when the ride finishes |
+| Empty states | Ride lists, dashboards | Friendly icon + title + message (and a call-to-action button where useful) instead of plain text |
+| Button/card/nav transitions | Everywhere | Short hover, active and focus transitions (0.12–0.28s) |
+
+All animations use CSS keyframes and Vanilla JavaScript only — no animation
+library. They respect the user's system setting via
+`@media (prefers-reduced-motion: reduce)`, and every new component is styled
+with the same CSS variables, so it looks correct in both light and dark mode.
 
 ---
 

@@ -50,6 +50,40 @@ PART 1b - DARK MODE (LIGHT / DARK THEME)
   - Nothing is saved on the server and no database column is used for this.
 
 ----------------------------------------------------------------------------
+PART 1c - WHAT YOU WILL SEE (ANIMATIONS AND NOTIFICATIONS)
+----------------------------------------------------------------------------
+
+  The app now has small animations so the demo looks polished:
+
+  1. WHEN YOU REQUEST A TAXI
+     A card appears with a bouncing taxi and "Finding a driver..."
+     then it changes to "Driver Found" with the driver name,
+     and then it opens the ride page automatically.
+
+  2. RIDE STATUS TRACKER
+     On the ride page there are 4 steps:
+
+        📝 Requested  ->  🚕 Driver Found  ->  🟢 Ride Started  ->  🏁 Completed
+
+     Finished steps get a green tick, the current step is highlighted.
+
+  3. TOAST NOTIFICATIONS
+     Small messages slide in at the bottom right corner:
+     "Ride requested successfully", "Driver found", "Ride completed",
+     etc. They disappear by themselves after a few seconds
+     (you can also close them with the X).
+
+  4. THE TAXI MOVES ON THE MAP (simulation only)
+     When a driver is assigned, the taxi icon moves smoothly from the
+     driver position to your pickup point. This is only a visual effect
+     for the demo - it is NOT real GPS.
+
+  5. WHEN THE RIDE IS COMPLETED
+     A small "🎉 Ride Completed!" card appears with a soft animation.
+
+  All of these work in BOTH light mode and dark mode.
+
+----------------------------------------------------------------------------
 PART 2 - ALL ACCOUNTS (USERNAMES AND PASSWORDS)
 ----------------------------------------------------------------------------
 
@@ -319,6 +353,9 @@ PART 12 - PROJECT FILES (QUICK MAP)
   src/data/tehranGraph.js           the simplified Tehran road network
   src/config.js                     base fare, price per km, average speed
   public/js/request-map.js          map clicking + Calculate Route button
+  public/js/toast.js                toast notification component
+  public/js/theme.js                light / dark mode switch
+  views/partials/status-tracker.ejs the 4-step ride progress display
   database/schema.sql               the database tables
   docs/routing.md                   full explanation of map + routing
   README.md                         full project documentation
