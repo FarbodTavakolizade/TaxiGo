@@ -1,0 +1,37 @@
+<%
+  // Ride status tracker (presentation only).
+  // Renders the four milestones of a ride and highlights the current one.
+  // Usage:  include the partial and pass { status: ride.status }.
+  var steps = [
+    { icon: '📝', label: 'Requested' },
+    { icon: '🚕', label: 'Driver Found' },
+    { icon: '🟢', label: 'Ride Started' },
+    { icon: '🏁', label: 'Completed' }
+  ];
+  var order = ['REQUESTED', 'ACCEPTED', 'STARTED', 'COMPLETED'];
+  var currentIndex = order.indexOf(status);
+%>
+
+<% if (status === 'CANCELLED') { %>
+
+  <div class="status-tracker" id="ride-status-tracker">
+    <span class="cancelled-note">✕ Ride Cancelled</span>
+  </div>
+
+<% } else { %>
+
+  <div class="status-tracker" id="ride-status-tracker">
+    <% steps.forEach(function (step, index) { %>
+      <%
+        var stateClass = '';
+        if (index < currentIndex) stateClass = 'done';
+        if (index === currentIndex) stateClass = (status === 'COMPLETED') ? 'done' : 'current';
+      %>
+      <div class="status-step <%= stateClass %>">
+        <div class="status-dot"><%= stateClass === 'done' ? '✓' : step.icon %></div>
+        <div class="status-label"><%= step.label %></div>
+      </div>
+    <% }); %>
+  </div>
+
+<% } %>

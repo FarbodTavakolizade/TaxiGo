@@ -5,6 +5,8 @@
   <span id="ride-status-badge" class="badge badge-<%= ride.status %>"><%= ride.status %></span>
 </div>
 
+<%- include('../partials/status-tracker', { status: ride.status }) %>
+
 <div class="ride-layout">
   <div class="card">
     <h2>Trip details</h2>
@@ -38,6 +40,15 @@
       <% } %>
       <a class="btn" href="/driver/dashboard">Back to dashboard</a>
     </div>
+
+    <!-- Shown when the ride is completed (also revealed by polling). -->
+    <div id="completion-message" <%= ride.status === 'COMPLETED' ? '' : 'hidden' %>>
+      <div class="completion-card">
+        <div class="completion-emoji">🎉</div>
+        <h2>Ride Completed!</h2>
+        <p>Thank you for driving with TaxiGo</p>
+      </div>
+    </div>
   </div>
 
   <div class="card map-card">
@@ -50,6 +61,8 @@
   <%- JSON.stringify({
         mapId: 'ride-map',
         rideId: ride.id,
+        status: ride.status,
+        viewerRole: 'DRIVER',
         poll: ['REQUESTED', 'ACCEPTED', 'STARTED'].includes(ride.status),
         originLat: ride.origin_lat, originLng: ride.origin_lng,
         destinationLat: ride.destination_lat, destinationLng: ride.destination_lng,

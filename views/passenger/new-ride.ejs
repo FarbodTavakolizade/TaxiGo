@@ -70,6 +70,17 @@
   </form>
 </div>
 
+<!-- Animated state shown while the ride request is being submitted. -->
+<div class="finding-overlay" id="finding-overlay" hidden>
+  <div class="finding-card">
+    <div class="finding-taxi" id="finding-taxi">🚕</div>
+    <h3 class="finding-title">
+      <span id="finding-title-text">Finding a driver</span><span class="loading-dots" id="finding-dots"><span>.</span><span>.</span><span>.</span></span>
+    </h3>
+    <p class="finding-sub" id="finding-sub">Looking for the nearest available driver</p>
+  </div>
+</div>
+
 <link rel="stylesheet" href="/vendor/leaflet/leaflet.css" />
 <script src="/vendor/leaflet/leaflet.js"></script>
 <script src="/js/map-utils.js"></script>

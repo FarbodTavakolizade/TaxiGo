@@ -25,6 +25,7 @@
   <% if (activeRide) { %>
     <div class="card">
       <h2>Current ride #<%= activeRide.id %></h2>
+      <%- include('../partials/status-tracker', { status: activeRide.status }) %>
       <table class="table">
         <tbody>
           <tr><th>Passenger</th><td><%= activeRide.passenger_name %></td></tr>
@@ -61,7 +62,11 @@
     </div>
   <% } else { %>
     <div class="card">
-      <div class="empty-state">You have no active ride. Accept one of the requests below.</div>
+      <div class="empty-state">
+        <div class="empty-state-icon">🗺️</div>
+        <p class="empty-state-title">No active ride</p>
+        <p class="empty-state-text">Accept one of the requests below to start driving.</p>
+      </div>
     </div>
   <% } %>
 
@@ -75,7 +80,11 @@
   <h2>Available ride requests</h2>
 
   <% if (availableRides.length === 0) { %>
-    <div class="empty-state">There are no ride requests waiting right now.</div>
+    <div class="empty-state">
+      <div class="empty-state-icon">🚗</div>
+      <p class="empty-state-title">No available rides</p>
+      <p class="empty-state-text">New requests will appear here automatically.</p>
+    </div>
   <% } else { %>
     <table class="table">
       <thead>
@@ -114,6 +123,8 @@
   <%- JSON.stringify({
         mapId: 'ride-map',
         rideId: activeRide ? activeRide.id : null,
+        status: activeRide ? activeRide.status : null,
+        viewerRole: 'DRIVER',
         poll: false,
         originLat: activeRide ? activeRide.origin_lat : null,
         originLng: activeRide ? activeRide.origin_lng : null,

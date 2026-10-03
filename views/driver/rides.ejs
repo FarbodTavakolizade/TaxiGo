@@ -5,7 +5,12 @@
 </div>
 
 <% if (rides.length === 0) { %>
-  <div class="empty-state">You have not worked on any rides yet.</div>
+  <div class="empty-state">
+    <div class="empty-state-icon">🚗</div>
+    <p class="empty-state-title">No rides yet</p>
+    <p class="empty-state-text">Rides you accept and complete will be listed here.</p>
+    <a class="btn btn-primary" href="/driver/dashboard">See available requests</a>
+  </div>
 <% } else { %>
   <table class="table">
     <thead>

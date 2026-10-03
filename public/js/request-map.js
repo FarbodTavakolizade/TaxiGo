@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
 
       if (!response.ok) {
-        showError(data.error || 'Could not calculate the route.');
+        showToast(data.error || 'Unable to calculate route', 'warning');
         return;
       }
 
@@ -154,10 +154,12 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSubmitState();
 
       if (data.usedFallback) {
-        showError('The points are outside the simplified road graph, so the straight-line distance is used.');
+        showToast('Points are outside the road graph - using straight-line distance', 'info');
+      } else {
+        showToast(`Route found: ${data.distanceKm} km`, 'success');
       }
     } catch (err) {
-      showError('Could not reach the server. Please try again.');
+      showToast('Unable to calculate route. Please try again.', 'error');
     } finally {
       button.disabled = false;
       button.textContent = 'Calculate Route';
@@ -228,6 +230,85 @@ document.addEventListener('DOMContentLoaded', () => {
   if (originText && destinationText) {
     originText.addEventListener('input', updateSubmitState);
     destinationText.addEventListener('input', updateSubmitState);
+  }
+
+  // ---------- submit the request with a "finding a driver" animation ----------
+  const form = el('ride-form');
+  const overlay = el('finding-overlay');
+
+  /** Shows the overlay in its "searching" state. */
+  function showFindingState() {
+    el('finding-taxi').textContent = '🚕';
+    el('finding-title-text').textContent = 'Finding a driver';
+    el('finding-sub').textContent = 'Looking for the nearest available driver';
+    el('finding-dots').hidden = false;
+    overlay.classList.remove('is-found');
+    overlay.hidden = false;
+  }
+
+  /** Switches the overlay to the "driver found" state. */
+  function showFoundState(message) {
+    el('finding-taxi').textContent = '✓';
+    el('finding-title-text').textContent = 'Driver Found';
+    el('finding-sub').textContent = message;
+    el('finding-dots').hidden = true;
+    overlay.classList.add('is-found');
+  }
+
+  function hideOverlay() {
+    overlay.hidden = true;
+  }
+
+  if (form && overlay) {
+    form.addEventListener('submit', async (event) => {
+      // Without JavaScript the form keeps working the normal way.
+      event.preventDefault();
+      if (!selection.route) return;
+
+      const submitButton = el('request-taxi');
+      submitButton.disabled = true;
+      showFindingState();
+
+      try {
+        // Same request the form would send, so the backend is unchanged.
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: new URLSearchParams(new FormData(form)),
+        });
+
+        // The server replies with a redirect to the new ride page.
+        const rideUrl = response.url;
+        let driverMessage = 'Your ride has been requested';
+
+        // Ask the existing ride API who was assigned (read-only).
+        try {
+          const rideId = rideUrl.split('/').pop();
+          const rideResponse = await fetch(`/api/rides/${rideId}`);
+          if (rideResponse.ok) {
+            const ride = await rideResponse.json();
+            if (ride.driverName) {
+              driverMessage = `${ride.driverName} is on the way`;
+            } else {
+              driverMessage = 'Waiting for a driver to accept';
+            }
+          }
+        } catch (err) {
+          // Keep the generic message; the animation still completes.
+        }
+
+        showFoundState(driverMessage);
+        showToast('Ride requested successfully', 'success');
+
+        // Give the user a moment to see "Driver Found", then open the ride.
+        setTimeout(() => {
+          window.location.href = rideUrl;
+        }, 1100);
+      } catch (err) {
+        hideOverlay();
+        submitButton.disabled = false;
+        showToast('Unable to send the request. Please try again.', 'error');
+      }
+    });
   }
 
   setMode('origin');

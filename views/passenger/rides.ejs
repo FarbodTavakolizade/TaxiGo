@@ -7,7 +7,10 @@
 
 <% if (rides.length === 0) { %>
   <div class="empty-state">
-    You have no rides yet. Click "Request Taxi" to create your first request.
+    <div class="empty-state-icon">🚕</div>
+    <p class="empty-state-title">No rides yet</p>
+    <p class="empty-state-text">Request your first taxi and it will show up here.</p>
+    <a class="btn btn-primary" href="/passenger/rides/new">Request Taxi</a>
   </div>
 <% } else { %>
   <table class="table">

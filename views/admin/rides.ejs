@@ -5,7 +5,11 @@
 </div>
 
 <% if (rides.length === 0) { %>
-  <div class="empty-state">There are no rides in the system yet.</div>
+  <div class="empty-state">
+    <div class="empty-state-icon">📭</div>
+    <p class="empty-state-title">No rides yet</p>
+    <p class="empty-state-text">Rides requested by passengers will appear here.</p>
+  </div>
 <% } else { %>
   <table class="table">
     <thead>
