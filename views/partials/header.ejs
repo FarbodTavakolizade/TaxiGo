@@ -28,6 +28,7 @@
       <nav class="nav-links">
         <% var isActive = function (path) { return currentPath === path ? 'active' : ''; }; %>
         <% if (!currentUser) { %>
+          <a class="<%= isActive('/') %>" href="/">Home</a>
           <a class="<%= isActive('/login') %>" href="/login">Login</a>
           <a class="<%= isActive('/register') %>" href="/register">Register</a>
         <% } else { %>

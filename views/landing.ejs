@@ -1,0 +1,117 @@
+<%- include('partials/header') %>
+
+<!-- ===================== Hero ===================== -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-content">
+      <span class="hero-badge">🚕 TaxiGo — Taxi Request System</span>
+
+      <h1 class="hero-title">Your Ride,<br />One Click Away.</h1>
+
+      <p class="hero-text">
+        TaxiGo makes getting around Tehran simple, fast, and convenient.
+        Pick your pickup point and destination on the map, see the shortest
+        route with the price before you order, and get matched with a nearby
+        driver.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/register">Get Started</a>
+        <a class="btn btn-secondary" href="/login">Login</a>
+      </div>
+
+      <p class="hero-note">No GPS needed — this is a university project built with Node.js and PostgreSQL.</p>
+    </div>
+
+    <!-- Decorative taxi + map illustration (plain CSS, no images). -->
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-card">
+        <div class="hero-card-top">
+          <span class="hero-card-dot"></span>
+          <span class="hero-card-dot"></span>
+          <span class="hero-card-dot"></span>
+          <span class="hero-card-title">Tehran</span>
+        </div>
+
+        <div class="hero-map">
+          <span class="hero-road hero-road-1"></span>
+          <span class="hero-road hero-road-2"></span>
+          <span class="hero-road hero-road-3"></span>
+
+          <span class="hero-pin hero-pin-origin">A</span>
+          <span class="hero-pin hero-pin-destination">B</span>
+          <span class="hero-taxi">🚕</span>
+        </div>
+
+        <div class="hero-card-bottom">
+          <div>
+            <div class="hero-stat-label">Distance</div>
+            <div class="hero-stat-value">8.4 km</div>
+          </div>
+          <div>
+            <div class="hero-stat-label">Time</div>
+            <div class="hero-stat-value">18 min</div>
+          </div>
+          <div>
+            <div class="hero-stat-label">Price</div>
+            <div class="hero-stat-value">134,000</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Feature cards ===================== -->
+<section class="container landing-section">
+  <div class="feature-grid">
+    <div class="card feature-card">
+      <div class="feature-icon">🚕</div>
+      <h3>Easy Ride Request</h3>
+      <p>Request your ride in just a few clicks — no phone call, no waiting on hold.</p>
+    </div>
+
+    <div class="card feature-card">
+      <div class="feature-icon">🗺️</div>
+      <h3>Smart Route</h3>
+      <p>Choose your origin and destination on the map and see the shortest path.</p>
+    </div>
+
+    <div class="card feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Fast Driver Assignment</h3>
+      <p>Find an available driver near your pickup location automatically.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== Trust section ===================== -->
+<section class="container landing-section">
+  <div class="card trust-card">
+    <div class="trust-item">
+      <div class="trust-icon">📍</div>
+      <div>
+        <div class="trust-title">Easy booking</div>
+        <div class="trust-text">Pick two points on the map and confirm.</div>
+      </div>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon">🧭</div>
+      <div>
+        <div class="trust-title">Smart routing</div>
+        <div class="trust-text">Shortest path plus distance, time and price.</div>
+      </div>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon">🤝</div>
+      <div>
+        <div class="trust-title">Simulated driver matching</div>
+        <div class="trust-text">The nearest available driver is assigned to you.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

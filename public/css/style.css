@@ -752,6 +752,334 @@ h1, h2, h3 {
 }
 
 /* =====================================================================
+   Landing / welcome page
+   Hero, feature cards and trust section. Built only with CSS and the
+   existing theme variables, so light and dark mode both work.
+   ===================================================================== */
+
+.hero {
+  padding: 46px 0 10px;
+  background:
+    radial-gradient(circle at 88% 15%, var(--color-primary-light), transparent 55%),
+    var(--color-bg);
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 34px;
+  align-items: center;
+}
+
+/* ----- left side: text ----- */
+.hero-content {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.hero-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary-border);
+  color: var(--color-primary-dark);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hero-title {
+  margin: 16px 0 12px;
+  font-size: 44px;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.hero-text {
+  margin: 0 0 22px;
+  max-width: 50ch;
+  /* The main marketing copy uses the full-contrast text color (the muted
+     tone is reserved for the smaller secondary lines below). */
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-note {
+  margin: 16px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+/* ----- right side: decorative taxi card ----- */
+.hero-visual {
+  animation: scaleIn 0.6s ease-out 0.15s both;
+}
+
+.hero-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  overflow: hidden;
+  animation: floaty 7s ease-in-out infinite;
+}
+
+.hero-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hero-card-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.hero-card-title {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Simple stylized "map" drawn with CSS gradients and dots. */
+.hero-map {
+  position: relative;
+  height: 240px;
+  background:
+    radial-gradient(circle at 20% 25%, var(--color-primary-light), transparent 45%),
+    linear-gradient(180deg, var(--color-surface-3), var(--color-surface-2));
+}
+
+.hero-road {
+  position: absolute;
+  background: var(--color-border);
+  border-radius: 999px;
+}
+
+.hero-road-1 {
+  left: 12%;
+  top: 34%;
+  width: 76%;
+  height: 3px;
+}
+
+.hero-road-2 {
+  left: 30%;
+  top: 12%;
+  width: 3px;
+  height: 70%;
+}
+
+.hero-road-3 {
+  left: 62%;
+  top: 46%;
+  width: 3px;
+  height: 40%;
+}
+
+.hero-pin,
+.hero-taxi {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50% 50% 50% 4px;
+  color: var(--text-on-accent);
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
+  border: 2px solid var(--map-pin-border);
+}
+
+.hero-pin {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+
+.hero-pin-origin {
+  left: 14%;
+  top: 42%;
+  background: var(--color-primary);
+}
+
+.hero-pin-destination {
+  right: 14%;
+  top: 20%;
+  background: var(--color-danger);
+}
+
+/* The taxi sits on the road and floats slowly toward the destination. */
+.hero-taxi {
+  left: 42%;
+  top: 53%;
+  width: 34px;
+  height: 34px;
+  font-size: 17px;
+  border-radius: 50%;
+  background: var(--map-pin-driver-bg);
+  animation: taxiDrive 5.5s ease-in-out infinite;
+}
+
+.hero-card-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  text-align: center;
+}
+
+.hero-stat-label {
+  font-size: 11px;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hero-stat-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+}
+
+/* ----- animations ----- */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes taxiDrive {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(46px, -30px) scale(1.06); }
+}
+
+/* ----- sections ----- */
+.landing-section {
+  padding-top: 8px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.feature-card {
+  margin: 0;
+  text-align: left;
+  /* Small staggered entrance: each card starts a bit later. */
+  animation: fadeInUp 0.45s ease-out both;
+}
+
+.feature-card:nth-child(1) { animation-delay: 0.15s; }
+.feature-card:nth-child(2) { animation-delay: 0.28s; }
+.feature-card:nth-child(3) { animation-delay: 0.41s; }
+
+.feature-icon {
+  font-size: 30px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.feature-card h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+
+.feature-card p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+/* ----- trust section ----- */
+.trust-card {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  animation: fadeInUp 0.5s ease-out 0.5s both;
+}
+
+.trust-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.trust-icon {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.trust-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.trust-text {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+/* ----- responsive ----- */
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .hero-title {
+    font-size: 36px;
+  }
+
+  .feature-grid,
+  .trust-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero {
+    padding-top: 30px;
+  }
+
+  .hero-title {
+    font-size: 30px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+
+  .hero-map {
+    height: 200px;
+  }
+}
+
+/* =====================================================================
    UI polish (frontend only)
    Small animations, toast notifications, ride status tracker, nicer
    empty states and the ride completion card. Every color comes from the

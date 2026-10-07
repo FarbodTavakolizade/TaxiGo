@@ -54,10 +54,11 @@ const driverRoutes = require('./routes/driverRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const apiRoutes = require('./routes/apiRoutes');
 
-// Small public entry point: send each visitor to the right place.
+// Public entry point. Guests see the landing page; a logged-in user keeps
+// the existing behaviour and is sent to the dashboard for their role.
 app.get('/', (req, res) => {
   const user = req.session.user;
-  if (!user) return res.redirect('/login');
+  if (!user) return res.render('landing', { title: 'Welcome' });
   if (user.role === 'ADMIN') return res.redirect('/admin/dashboard');
   if (user.role === 'DRIVER') return res.redirect('/driver/dashboard');
   return res.redirect('/passenger/dashboard');
