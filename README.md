@@ -18,6 +18,13 @@ layered architecture, and a minimal dependency list.
 
 ## Features
 
+**Landing page**
+
+- Public welcome page at `/` (hero, feature cards, trust section)
+- Guests see it before logging in; logged-in users keep going straight to
+  their dashboard
+- "Get Started" / "Register" open the register page, "Login" opens the login page
+
 **Passenger**
 
 - Register and log in

@@ -33,6 +33,8 @@ is a small state machine with five states and strictly limited transitions.
 | FR-1.5 | A deactivated user cannot log in.                                              |
 | FR-1.6 | The logged-in user's id, name, email and role are kept in the session.         |
 | FR-1.7 | A user can log out, which destroys the session.                                |
+| FR-1.8 | The root URL (`/`) shows a public landing page to visitors who are not logged in, with working links to Login and Register. |
+| FR-1.9 | A logged-in user opening `/` is still sent to the dashboard for their role (unchanged behaviour). |
 
 ### 4.2 Passenger
 
